@@ -1,4 +1,7 @@
 # ------------------------------------------------------------------------------------------------------------------------
+# WARNING: This does not work yet!!! The BuildFunction works, but when the BuildWebSite is place right
+#   after that, the Build job fails...!
+# ------------------------------------------------------------------------------------------------------------------------
 # Pipeline to deploy Azure Resources for All Environments for the IoT Demo Project
 # ------------------------------------------------------------------------------------------------------------------------
 # Note: This pipeline needs a variable group "IoTDemo-<env>" -> one for EACH environment being deployed.
