@@ -1,0 +1,15 @@
+You will need to populate these in the local.settings.json file in your project.
+{
+	"IsEncrypted": false,
+	"Values": {
+		"AzureWebJobsStorage": "UseDevelopmentStorage=true",
+		"FUNCTIONS_WORKER_RUNTIME": "dotnet",
+		"ServiceBusConnectionString": "Endpoint=sb://xxx-iotdemo-svcbus-dev.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=...",
+		"IoTFileUploadConnectionString": "DefaultEndpointsProtocol=https;AccountName=xxxiotdemostorehubdev;EndpointSuffix=core.windows.net;AccountKey=..."
+	},
+	"MyConfiguration": {
+		"ApplicationTitle": "IoT Example Function Processor",
+		"WriteToCosmosYN": "Y",
+		"WriteToSignalRYN": "N"
+	}
+}

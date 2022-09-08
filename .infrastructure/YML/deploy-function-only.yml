@@ -1,0 +1,136 @@
+# ------------------------------------------------------------------------------------------------------------------------
+# Pipeline to deploy IoT Function App Processor for the IoT Demo Project
+# ------------------------------------------------------------------------------------------------------------------------
+# Note: This pipeline needs a variable group "IoTDemo-<env>" -> one for EACH environment being deployed.
+#  See ../Docs/VariableGroups.md for details
+# ------------------------------------------------------------------------------------------------------------------------
+name: $(date:yyyy).$(date:MM).$(date:dd)$(rev:.r)
+pool:
+  vmImage: 'windows-latest'
+
+# ------------------------------------------------------------------------------------------------------------------------
+trigger:
+  branches:
+    include: 
+      - master
+  paths:
+    include:
+      - FunctionApp
+    exclude: 
+      - '**/*.yml'
+      - '**/*.yaml'
+      - '**/*.bicep'
+
+stages:
+- stage: BuildApplication
+  displayName: Build Application
+  jobs:
+  - template: templates/build-function.yml
+    parameters:
+      variableGroupName: 'IoTDemo-Dev'
+      environmentName: 'DEV'
+      runDateTime: 'Pipeline-$(Build.BuildNumber)'
+
+- stage: DeployAppDEV
+  displayName: DEV Application
+  dependsOn: BuildApplication
+  condition: succeeded('BuildApplication')
+  jobs:
+  - template: templates/deploy-function.yml
+    parameters:
+      variableGroupName: 'IoTDemo-Dev'
+      environmentName: 'DEV'
+      runDateTime: 'Pipeline-$(Build.BuildNumber)'
+
+- stage: DeployAppQA
+  displayName: QA Application
+  dependsOn: DeployAppDEV
+  condition: succeeded('DeployAppDEV')
+  jobs:
+  - template: templates/deploy-function.yml
+    parameters:
+      variableGroupName: 'IoTDemo-QA'
+      environmentName: 'QA'
+      runDateTime: 'Pipeline-$(Build.BuildNumber)'
+
+
+# ------------------------------------------------------------------------------------------------------------------------
+# variables:
+#   - name: workingDirectory
+#     value: '$(System.DefaultWorkingDirectory)/FunctionApp/IoT.Processor'
+#   - group: IoTDemo-Deploy-FunctionApp
+
+# # ------------------------------------------------------------------------------------------------------------------------
+# stages:
+# - stage: BuildProgram
+#   displayName: Build Program
+#   jobs:
+#   - job: Build
+#     displayName: Build
+
+#     steps:
+#     - task: DotNetCoreCLI@2
+#       displayName: 'dotnet build'
+#       inputs:
+#         command: build
+#         projects: $(workingDirectory)/*.csproj
+#         arguments: --output $(System.DefaultWorkingDirectory)/publish_output --configuration Release
+
+#     - task: ArchiveFiles@2
+#       displayName: 'Archive files'
+#       inputs:
+#         rootFolderOrFile: '$(System.DefaultWorkingDirectory)/publish_output'
+#         includeRootFolder: false
+#         archiveType: zip
+#         archiveFile: $(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip
+#         replaceExistingArchive: true
+
+#     - publish: $(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip
+#       artifact: drop
+
+
+# # ------------------------------------------------------------------------------------------------------------------------
+# - stage: DeployDEV
+#   displayName: Dev Deploy Stage
+#   dependsOn: BuildProgram
+#   condition: succeeded()
+
+#   jobs:
+#   - deployment: DeployDev
+#     displayName: Deploy DEV
+#     environment: 'DEV'
+
+#     strategy:
+#       runOnce:
+#         deploy:
+#           steps:
+#           - task: AzureFunctionApp@1
+#             displayName: 'Azure Function App Deploy'
+#             inputs:
+#               azureSubscription: '$(subscriptionNameDev)'
+#               appType: functionApp
+#               appName: $(functionAppNameDev)
+#               package: '$(Pipeline.Workspace)/drop/$(Build.BuildId).zip'
+
+# # ------------------------------------------------------------------------------------------------------------------------
+# - stage: DeployQA
+#   displayName: QA Deploy Stage
+#   dependsOn: DeployDev
+#   condition: succeeded()
+
+#   jobs:
+#   - deployment: DeployQA
+#     displayName: Deploy QA
+#     environment: 'QA'
+
+#     strategy:
+#       runOnce:
+#         deploy:
+#           steps:
+#           - task: AzureFunctionApp@1
+#             displayName: 'Azure Function App Deploy'
+#             inputs:
+#               azureSubscription: '$(subscriptionNameQA)'
+#               appType: functionApp
+#               appName: $(functionAppNameQA)
+#               package: '$(Pipeline.Workspace)/drop/$(Build.BuildId).zip'

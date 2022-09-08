@@ -1,0 +1,25 @@
+{
+  "EnvironmentCode": "DEV",
+  //"DeviceId": "testsymm1",
+  "HeartbeatInterval": 15,
+
+  // For Device Authorization, supply either: 
+  //   DeviceConnectionString, or IoTHubUri+SymmetricKey, or DpsScopeId+PfxFileName+PfxFilePassword
+
+  // "DeviceConnectionString": "HostName=lciiothubdev1.azure-devices.net;DeviceId=testkey1;SharedAccessKey=hduQ9...",
+  //"SymmetricKey": "hduQ9...=",
+  //"IotHubUri": "lciiothub1",
+
+  "DpsScopeId": "0ne007019C9",
+  "PfxFileName": "0ne007019C9.pfx", // Serial number of my laptop
+  // "PfxFileName": "testsymm1.pfx",
+  "PfxFilePassword": "1234",
+
+  //The transport (except HTTP) to use to communicate with the IoT hub. Possible values include:
+  //  Mqtt, Mqtt_WebSocket_Only, Mqtt_Tcp_Only, Amqp, Amqp_WebSocket_Only, and Amqp_Tcp_Only.
+  //"TransportProtocol": "HTTP"
+  "TransportProtocol": "Mqtt_WebSocket_Only"
+  //"TransportProtocol": "Amqp_WebSocket_Only"
+  //"TransportProtocol": "Amqp"
+  //"TransportProtocol": "Mqtt"
+}

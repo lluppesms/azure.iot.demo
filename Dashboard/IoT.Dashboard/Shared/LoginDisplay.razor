@@ -1,0 +1,11 @@
+﻿@using Microsoft.AspNetCore.Components.Authorization
+<AuthorizeView>
+    <Authorized>
+        <span class="userIdDisplay">Hello, @context.User.Identity.Name!</span>
+@*        <a href="AzureAD/Account/SignOut">Log out</a>*@
+    </Authorized>
+    <NotAuthorized>
+        Not Logged In!
+@*        <a href="AzureAD/Account/SignIn">Log in</a>*@
+    </NotAuthorized>
+</AuthorizeView>

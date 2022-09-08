@@ -1,0 +1,38 @@
+@startuml Cosmos Functions Demo
+!pragma revision 1
+
+!define AzurePuml https://raw.githubusercontent.com/RicardoNiepel/Azure-PlantUML/release/2-1/dist
+!includeurl AzurePuml/AzureCommon.puml
+
+!define ICONURL https://raw.githubusercontent.com/tupadr3/plantuml-icon-font-sprites/v2.1.0
+
+!includeurl AzurePuml/Compute/AzureFunction.puml
+!includeurl AzurePuml/Databases/AzureCosmosDb.puml
+!includeurl AzurePuml/Integration/AzureServiceBus.puml
+LAYOUT_LEFT_RIGHT
+
+title Cosmos Functions Demo
+
+AzureFunction(CreateOrder, "CreateOrder", "CreateOrder")
+AzureFunction(CreateOrder2, "CreateOrder2", "CreateOrder2")
+AzureFunction(GetProductByIdFromRoute, "GetProductByIdFromRoute", "GetProductByIdFromRoute")
+AzureFunction(GetProducts, "GetProducts", "GetProducts")
+AzureFunction(GetProductsByDescription, "GetProductsByDescription", "GetProductsByDescription")
+AzureFunction(OrdersChangeFeedProcessor, "OrdersChangeFeedProcessor", "OrdersChangeFeedProcessor")
+AzureCosmosDb(cosmosOrders, "Orders", "Orders")
+AzureCosmosDb(cosmosProducts, "Products", "Products")
+AzureServiceBus(ordersReceived, "Orders Received", "Orders Received")
+AzureFunction(sendOrderToErp, "Send Order to ERP", "Send Order to ERP")
+AzureServiceBus(orderToErp, "Order to ERP", "Order to ERP")
+
+cosmosProducts ---> GetProductByIdFromRoute
+cosmosProducts ---> GetProducts
+cosmosProducts ---> GetProductsByDescription
+cosmosOrders ---> OrdersChangeFeedProcessor
+CreateOrder ---> cosmosOrders
+CreateOrder2 ---> cosmosOrders
+OrdersChangeFeedProcessor ---> cosmosProducts
+OrdersChangeFeedProcessor ---> ordersReceived
+ordersReceived ---> sendOrderToErp
+sendOrderToErp ---> orderToErp
+@enduml

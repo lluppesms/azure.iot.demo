@@ -1,0 +1,113 @@
+# ------------------------------------------------------------------------------------------------------------------------
+# Pipeline to deploy Azure Resources for All Environments for the IoT Demo Project
+# ------------------------------------------------------------------------------------------------------------------------
+# Note: This pipeline needs a variable group "IoTDemo-<env>" -> one for EACH environment being deployed.
+#  See ../Docs/VariableGroups.md for details
+# ------------------------------------------------------------------------------------------------------------------------
+name: $(date:yyyy).$(date:MM).$(date:dd)$(rev:.r)
+pool:
+  vmImage: ubuntu-latest
+
+# ------------------------------------------------------------------------------------------------------------------------
+trigger:
+  batch: true
+  paths:
+    include: 
+      - '**/*.yml'
+      - '**/*.yaml'
+      - '**/*.bicep'
+
+# ----------------------------------------------------------------------------------------------------
+stages:
+- stage: BuildFunctionApp
+  displayName: Build Function
+  jobs:
+  - template: templates/build-function.yml
+    parameters:
+      variableGroupName: 'IoTDemo-Dev'
+      environmentName: 'DEV'
+      runDateTime: 'Pipeline-$(Build.BuildNumber)'
+
+- stage: BuildWebsiteApp
+  displayName: Build Website
+  jobs:
+  - template: templates/build-website.yml
+    parameters:
+      variableGroupName: 'IoTDemo-Dev'
+      environmentName: 'DEV'
+      runDateTime: 'Pipeline-$(Build.BuildNumber)'
+
+# ----------------------------------------------------------------------------------------------------
+- stage: DeployDEVResources
+  displayName: DEV Deploy Resources
+  dependsOn: 
+    - BuildFunctionApp
+    - BuildWebsiteApp
+  condition: 
+    and
+    (
+      eq(dependencies.BuildFunctionApp.result, 'Succeeded'),
+      eq(dependencies.BuildWebsiteApp.result, 'Succeeded')
+    )
+  jobs:
+  - template: templates\create-infra.yml
+    parameters:
+      variableGroupName: 'IoTDemo-Dev'
+      environmentUpper: 'DEV'
+      runDateTime: 'Pipeline-$(Build.BuildNumber)'
+
+- stage: DeployFunctionAppDEV
+  displayName: DEV Deploy Function
+  dependsOn: DeployDEVResources
+  condition: succeeded('DeployDEVResources')
+  jobs:
+  - template: templates/deploy-function.yml
+    parameters:
+      variableGroupName: 'IoTDemo-Dev'
+      environmentName: 'DEV'
+      runDateTime: 'Pipeline-$(Build.BuildNumber)'
+
+- stage: DeployWebAppDEV
+  displayName: DEV Deploy Web
+  dependsOn: DeployFunctionAppDEV
+  condition: succeeded('DeployFunctionAppDEV')
+  jobs:
+  - template: templates/deploy-website.yml
+    parameters:
+      variableGroupName: 'IoTDemo-Dev'
+      environmentName: 'DEV'
+      runDateTime: 'Pipeline-$(Build.BuildNumber)'
+
+# ----------------------------------------------------------------------------------------------------
+- stage: DeployQAResources
+  displayName: QA Deploy Resources
+  dependsOn: DeployWebAppDEV
+  condition: succeeded('DeployWebAppDEV')
+  jobs:
+  - template: templates\create-infra.yml
+    parameters:
+      variableGroupName: 'IoTDemo-QA'
+      environmentUpper: 'QA'
+      runDateTime: 'Pipeline-$(Build.BuildNumber)'
+
+- stage: DeployFunctionAppQA
+  displayName: QA Deploy Function
+  dependsOn: DeployQAResources
+  condition: succeeded('DeployQAResources')
+  jobs:
+  - template: templates/deploy-function.yml
+    parameters:
+      variableGroupName: 'IoTDemo-QA'
+      environmentName: 'QA'
+      runDateTime: 'Pipeline-$(Build.BuildNumber)'
+
+- stage: DeployAppQA
+  displayName: QA Deploy Web
+  dependsOn: DeployFunctionAppQA
+  condition: succeeded('DeployFunctionAppQA')
+  jobs:
+  - template: templates/deploy-website.yml
+    parameters:
+      variableGroupName: 'IoTDemo-QA'
+      environmentName: 'QA'
+      runDateTime: 'Pipeline-$(Build.BuildNumber)'

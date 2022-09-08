@@ -1,0 +1,230 @@
+﻿@page "/"
+@inherits IoT.Dashboard.Pages.Dashboard
+<PageTitle>IoT Example Dashboard 1.1</PageTitle>
+
+@using Blazorise
+@using Blazorise.DataGrid
+
+<link href="/css/dashboard.css" rel="stylesheet" />
+
+<Div>
+    <Heading Size="HeadingSize.Is4">Select a device:</Heading>
+    <Select @bind-SelectedValue="@selectedDeviceId" @onchange="OnDeviceSelected" class="form-control wideDropdown">
+        <option></option>
+        @foreach (var item in deviceIdList)
+        {
+            <option value="@item">@item</option>
+        }
+    </Select>
+    <br />&nbsp;
+</Div>
+<br />
+
+<Div>
+    <Tabs SelectedTab="@selectedTab" SelectedTabChanged="@OnSelectedTabChanged" Class="MyTabBottomBorder">
+        <Items>
+            <Tab Name="deviceState" Class="MyTabs">Device State</Tab>
+            <Tab Name="deviceCommands" Class="MyTabs">Commands</Tab>
+            <Tab Name="deviceData" Class="MyTabs">Data</Tab>
+            <Tab Name="deviceFiles" Class="MyTabs">Files</Tab>
+        </Items>
+
+        <Content>
+            <TabPanel Name="deviceState">
+                @if (hideDeviceState)
+                {
+                    <Div class="spinner"></Div>
+                }
+                else
+                {
+                    <Heading Size="HeadingSize.Is2">Device: @selectedDeviceId  <a @onclick='(() => GetTwin(selectedDeviceId))' style="cursor: pointer;" title="Refresh Data"><i class="fas fa-sync refreshIcon"></i></a></Heading>
+                    <Paragraph class="refreshText">@lastRefreshTwin</Paragraph>
+                    <Row>
+                        <Column ColumnSize="ColumnSize.Is6">
+                            <Div class="callout callout150">
+                                <Heading Size="HeadingSize.Is3">Device Twin Reported Properties:</Heading>
+                                <Text>@deviceTwinReportedValue</Text>
+                            </Div>
+                            <Div class="callout callout150MT">
+                                <Heading Size="HeadingSize.Is3">Device Twin Desired Properties:</Heading>
+                                <Text>@deviceTwinDesiredValue</Text>
+                            </Div>
+                        </Column>
+                        <Column ColumnSize="ColumnSize.Is6">
+                            @if (hideDeviceChangeProperty)
+                            {
+                                <Div class="spinner"></Div>
+                            }
+                            else
+                            {
+                                <Div class="callout callout350">
+                                    <Heading Size="HeadingSize.Is3">Set Device Twin Desired Property:</Heading>
+                                    <Fields>
+                                        <Field Horizontal Margin="Margin.Is1">
+                                            <FieldLabel ColumnSize="ColumnSize.Is2">Property: </FieldLabel>
+                                            <FieldBody ColumnSize="ColumnSize.Is10">
+                                                <TextEdit @bind-Text="newDesiredPropertyName" class="width250" Placeholder="property" />
+                                            </FieldBody>
+                                        </Field>
+                                        <Field Horizontal Margin="Margin.Is1">
+                                            <FieldLabel ColumnSize="ColumnSize.Is2">Value:</FieldLabel>
+                                            <FieldBody ColumnSize="ColumnSize.Is10">
+                                                <TextEdit @bind-Text="newDesiredPropertyValue" class="width400" Placeholder="value" />
+                                            </FieldBody>
+                                        </Field>
+                                        <Field Horizontal Margin="Margin.Is1">
+                                            <FieldLabel ColumnSize="ColumnSize.Is2"></FieldLabel>
+                                            <FieldBody ColumnSize="ColumnSize.Is10">
+                                                <Button @onclick="UpdateTwin" class="btn btn-success">Update Device Twin</Button>
+                                            </FieldBody>
+                                        </Field>
+                                    </Fields>
+                                </Div>
+                            }
+                        </Column>
+                    </Row>
+                }
+            </TabPanel>
+            <TabPanel Name="deviceCommands">
+                <Heading Size="HeadingSize.Is2">Send to Device: @selectedDeviceId</Heading>
+                <Row>
+                    <Column ColumnSize="ColumnSize.Is6">
+                        <Div class="callout callout150">
+                            <Heading Size="HeadingSize.Is3">Call Direct Method</Heading>
+                            <Button @onclick='(() => CallDirectMethod("WriteToConsole"))' class="btn btn-success addTopSpacing">Write to Console</Button><br />
+                            <Button @onclick='(() => CallDirectMethod("GetDeviceName"))' class="btn btn-success addTopSpacing">Query Device Name</Button><br />
+                        </Div>
+                    </Column>
+                    <Column ColumnSize="ColumnSize.Is6">
+                        <Div class="callout callout150">
+                            <Heading Size="HeadingSize.Is3">Send Command Message</Heading>
+                            <Fields>
+                                <Field Horizontal Margin="Margin.Is1">
+                                    <FieldLabel ColumnSize="ColumnSize.Is2">Command: </FieldLabel>
+                                    <FieldBody ColumnSize="ColumnSize.Is10">
+                                        <select class="form-control wideDropdown" @onchange="OnCommandChanged">
+                                            <option selected></option>
+                                            <option value="IPADDRESS">IP Address</option>
+                                            <option value="LOG">Upload Log</option>
+                                            <option value="HEARTBEAT">Send Heartbeat</option>
+                                            <option value="FIRMWAREUPDATE">Firmware Check</option>
+                                            <option value="READTWIN">Read Device Twin</option>
+                                            <option value="WRITETWIN">Update Device Twin</option>
+                                            <option value="PODBAYDOORS">Open the Pod Bay Doors</option>
+                                            <option value="CUSTOM">Custom</option>
+                                        </select>
+                                    </FieldBody>
+                                </Field>
+                                @if (!hideCustomCommand)
+                                {
+                                    <Field Horizontal Margin="Margin.Is1">
+                                        <FieldLabel ColumnSize="ColumnSize.Is2">Value: </FieldLabel>
+                                        <FieldBody ColumnSize="ColumnSize.Is10">
+                                            <TextEdit @bind-Text="customCommandValue" class="width400" Placeholder="value" />
+                                        </FieldBody>
+                                    </Field>
+                                }
+                                <Field Horizontal Margin="Margin.Is1">
+                                    <FieldLabel ColumnSize="ColumnSize.Is2"></FieldLabel>
+                                    <FieldBody ColumnSize="ColumnSize.Is10">
+                                        <Button @onclick="SendCommandToDevice" class="btn btn-success">Send Command</Button>
+                                    </FieldBody>
+                                </Field>
+                            </Fields>
+                        </Div>
+
+                        <Div class="callout callout150MT">
+                            <Heading Size="HeadingSize.Is3">Send Generic Message</Heading>
+                            <Fields>
+                                <Field Horizontal Margin="Margin.Is1">
+                                    <FieldLabel ColumnSize="ColumnSize.Is2">Message: </FieldLabel>
+                                    <FieldBody ColumnSize="ColumnSize.Is10">
+                                        <TextEdit @bind-Text="newMessageValue" class="width400" Placeholder="value" />
+                                    </FieldBody>
+                                </Field>
+                                <Field Horizontal Margin="Margin.Is1">
+                                    <FieldLabel ColumnSize="ColumnSize.Is2"></FieldLabel>
+                                    <FieldBody ColumnSize="ColumnSize.Is10">
+                                        <Button @onclick="SendMessageToDevice" class="btn btn-success">Send Command</Button>
+                                    </FieldBody>
+                                </Field>
+                            </Fields>
+                        </Div>
+                    </Column>
+                </Row>
+            </TabPanel>
+            <TabPanel Name="deviceData">
+                <table>
+                    <tr>
+                        <td><Heading Size="HeadingSize.Is2">Data for Device: @selectedDeviceId &nbsp;&nbsp;</Heading></td>
+                        <td>
+                            <select class="form-control wideDropdown" @onchange="OnDataTypeSelected">
+                                <option value="" selected>All Types</option>
+                                <option value="Register">Device Registrations</option>
+                                <option value="Heartbeat">Device Heartbeats</option>
+                                <option value="Method">Method Calls</option>
+                                <option value="Command">Commands</option>
+                            </select>
+                        </td>
+                        <td>
+                            <select class="form-control wideDropdown" @onchange="OnDataHoursSelected">
+                                <option value="1">Last Hour</option>
+                                <option value="4">Last 4 Hours</option>
+                                <option value="24" selected>Last 24 Hours</option>
+                                <option value="48">Last 48 Hours</option>d
+                                <option value="168">This Week</option>
+                                <option value="336-168">Previous Week</option>
+                                <option value="504-336">Two Weeks Ago</option>
+                            </select>
+                        </td>
+                        <td>
+                            <select class="form-control wideDropdown" @onchange="OnDataCountSelected">
+                                <option value="25">25 Rows</option>
+                                <option value="50" selected>50 Rows</option>
+                                <option value="100">100 Rows</option>
+                                <option value="500">500 Rows</option>
+                            </select>
+                        </td>
+                        <td><a @onclick='(() => GetDataRecords())' style="cursor: pointer; font-size: 2em" title="Refresh Data"><i class="fas fa-sync refreshIcon"></i></a></td>
+                    </tr>
+                </table>
+                <Div class="refreshText">@lastRefreshData</Div>
+
+                @if (hideDeviceData)
+                {
+                    <Div class="spinner"></Div>
+                }
+                else
+                {
+                    <DataGrid TItem="DeviceData" Data="@dataList" Responsive PageSize=10 ShowPager RowClicked="GetDataRecord">
+                        <DataGridCommandColumn />
+                        <DataGridDateColumn Field="@nameof(DeviceData.EventDateTime)" Caption="Time" Sortable="true" />
+                        <DataGridColumn Field="@nameof(DeviceData.EventTypeCode)" Caption="Type" Sortable="true" />
+                        <DataGridColumn Field="@nameof(DeviceData.AdditionalData)" Caption="Data" Sortable="false" />
+                        <DataGridColumn Field="@nameof(DeviceData.RowId)" Caption="#" Sortable="true" />
+                    </DataGrid>
+                }
+            </TabPanel>
+            <TabPanel Name="deviceFiles">
+                <Heading Size="HeadingSize.Is2">Uploaded Files for Device: @selectedDeviceId <a @onclick='(() => GetFiles())' class="addPointer" title="Refresh Data"><i class="fas fa-sync refreshIcon"></i></a></Heading>
+                <Div class="refreshText">@lastRefreshFiles</Div>
+                @if (hideDeviceFiles)
+                {
+                    <Div class="spinner"></Div>
+                }
+                else
+                {
+                    <Heading Size="HeadingSize.Is4">Selected File: @selectedFileName</Heading>
+                    <DataGrid TItem="DeviceFile" Data="@fileList" Responsive PageSize=10 ShowPager RowClicked="GetFile">
+                        <DataGridCommandColumn />
+                        <DataGridColumn Field="@nameof(DeviceFile.ShortFileName)" Caption="File" Sortable="true" />
+                        <DataGridColumn Field="@nameof(DeviceFile.FileName)" Caption="Path" Sortable="true" />
+                        <DataGridDateColumn Field="@nameof(DeviceFile.FileTime)" Caption="Time" Sortable="true" />
+                        <DataGridDateColumn Field="@nameof(DeviceFile.FileSize)" Caption="Bytes" Sortable="true" />
+                        <DataGridColumn Field="@nameof(DeviceFile.RowId)" Caption="#" Sortable="true" />
+                    </DataGrid>
+                }
+            </TabPanel>
+        </Content>
+    </Tabs>
+</Div>

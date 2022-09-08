@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "IoT.Simulator": {
+      "commandName": "Project",
+      "commandLineArgs": "config.json"
+    }
+  }
+}

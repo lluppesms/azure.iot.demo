@@ -1,0 +1,52 @@
+# ----------------------------------------------------------------------------------------------------
+# Template to deploy a pre-built Azure Function artifact to one environment
+# ----------------------------------------------------------------------------------------------------
+parameters: 
+- name: variableGroupName
+  default:  'myVariableGroup'
+- name: environmentName
+  default:  'DEV'
+- name: runDateTime
+  default:  '12-31-2020 23:59:59'
+
+# ----------------------------------------------------------------------------------------------------
+jobs:
+- deployment: DeployApplication
+  displayName: Initialize Deploy App
+  environment: ${{ parameters.environmentName }}
+
+- job: DeployApplicationJob
+  displayName: Deploy Application
+  variables:
+    - group: ${{ parameters.variableGroupName }}
+    - name: environmentNameUpper
+      value: ${{ upper(parameters.environmentName) }}
+    - name: environmentNameLower
+      value: ${{ lower(parameters.environmentName) }}
+
+  steps:
+  - task: DownloadPipelineArtifact@2
+    displayName: 'Download Pipeline Artifacts'
+    inputs:
+      artifact: functiondrop
+
+  - task: CmdLine@2
+    inputs:
+      script: |
+        echo "serviceConnectionName=$(serviceConnectionName)"
+        echo "environmentNameUpper=$(environmentNameUpper)"
+        echo "environmentNameLower=$(environmentNameLower)"
+        echo "resourceGroupName=$(resourceGroupName)"
+        echo "functionAppName=$(functionAppName)"
+        echo "Directory of pipeline workspace:"
+        tree $(Pipeline.Workspace)
+    displayName: 'Display Variables and Tree'
+
+  - task: AzureFunctionApp@1
+    displayName: 'Function App Deploy'
+    inputs:
+      azureSubscription: $(serviceConnectionName)
+      appType: functionAppLinux
+      appName: $(functionAppName)
+      package: '$(Pipeline.Workspace)/function-$(appPrefix)*.zip'
+      AppSettings: ''

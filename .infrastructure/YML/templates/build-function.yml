@@ -1,0 +1,65 @@
+# ----------------------------------------------------------------------------------------------------
+# Template to build Azure Function and create artifacts
+# ----------------------------------------------------------------------------------------------------
+parameters: 
+- name: variableGroupName
+  default:  'myVariableGroup'
+- name: environmentName
+  default:  'DEV'
+- name: runDateTime
+  default:  '12-31-2020 23:59:59'
+
+# ----------------------------------------------------------------------------------------------------
+jobs:
+- deployment: BuildApplication
+  displayName: Initialize Build App
+  environment: ${{ parameters.environmentName }}
+
+- job: BuildApplicationJob
+  displayName: Build Application
+
+  variables:
+    - group: ${{ parameters.variableGroupName }}
+    - name: workingDirectory
+      value: '$(System.DefaultWorkingDirectory)/FunctionApp/IoT.Processor'
+
+  steps:
+  - bash: |
+      echo "Build.ArtifactStagingDirectory=$(Build.ArtifactStagingDirectory)"
+      echo "System.DefaultWorkingDirectory=$(System.DefaultWorkingDirectory)"
+      echo "Build.BuildId=$(Build.BuildId)"
+      echo "appPrefix=$(appPrefix)"
+    continueOnError: true
+    displayName: 'Display Variables'
+
+  - task: DotNetCoreCLI@2
+    displayName: 'Build project'
+    inputs:
+      command: build
+      projects: $(workingDirectory)/*.csproj
+      arguments: --output $(System.DefaultWorkingDirectory)/function_output --configuration Release
+
+  - task: ArchiveFiles@2
+    displayName: 'Zip Output'
+    inputs:
+      rootFolderOrFile: '$(System.DefaultWorkingDirectory)/function_output'
+      includeRootFolder: false
+      archiveType: zip
+      archiveFile: $(Build.ArtifactStagingDirectory)/function-$(appPrefix)$(Build.BuildId).zip
+      replaceExistingArchive: true
+
+  - task: PublishPipelineArtifact@1
+    displayName: 'Publish Artifact'
+    inputs:
+      targetPath: '$(Build.ArtifactStagingDirectory)'
+      artifact: functiondrop
+      publishLocation: 'pipeline'
+
+  - task: CmdLine@2
+    inputs:
+      script: |
+        tree $(workingDirectory)
+        tree $(Build.ArtifactStagingDirectory)
+    displayName: 'Display Directory Tree'
+
+

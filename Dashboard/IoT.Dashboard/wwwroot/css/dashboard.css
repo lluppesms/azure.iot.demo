@@ -1,0 +1,99 @@
+﻿.refreshText {
+  font-size: 0.7em;
+  color: darkgreen;
+  margin: 0 10px 10px 10px;
+}
+
+.refreshIcon {
+  color: #666666;
+  margin-left: 15px;
+  font-size: 0.8em;
+}
+
+.callout150 {
+  min-height: 150px;
+}
+
+.callout150MT {
+  min-height: 150px;
+  margin-top: 25px;
+  margin-bottom: 25px;
+}
+
+.callout350 {
+  min-height: 350px;
+}
+
+.wideDropdown {
+  float: left;
+  margin-right: 20px;
+  margin-top: -2px;
+  min-width: 225px;
+  width: 225px;
+}
+.mediumDropdown {
+    float: left;
+    margin-right: 20px;
+    margin-top: -2px;
+    min-width: 150px;
+    width: 150px;
+}
+.narrowDropdown {
+    float: left;
+    margin-right: 20px;
+    margin-top: -2px;
+    min-width: 100px;
+    width: 100px;
+}
+
+.width250 {
+  width: 250px;
+}
+
+.width400 {
+  width: 400px;
+}
+
+.addTopSpacing {
+  margin-top: 15px;
+}
+
+.addPointer {
+  cursor: pointer;
+}
+
+.MyTabBottomBorder {
+    border-bottom: 2px solid #103e10 !important;
+}
+.MyTabs a {
+    background-color: #103e1030 !important;
+    color: black !important;
+    border-color: #032e03 !important;
+    margin-right: 1px !important;
+}
+    .MyTabs a.active {
+        background-color: #103e10 !important;
+        color: white !important;
+    }
+    .MyTabs a:hover {
+        background-color: #103e1080 !important;
+        color: white !important;
+    }
+
+.MyTabsBlue a {
+    background-color: #2d2dc730 !important;
+    color: black !important;
+    border-color: #4141ce !important;
+    margin-right: 1px !important;
+}
+
+    .MyTabsBlue a.active {
+        background-color: #232ce6 !important;
+        color: white !important;
+    }
+
+    .MyTabsBlue a:hover {
+        background-color: #232ce680 !important;
+        color: white !important;
+    }
+

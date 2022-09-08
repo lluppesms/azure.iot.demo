@@ -1,0 +1,71 @@
+# ----------------------------------------------------------------------------------------------------
+# Template to deploy a pre-built Azure Website artifact to one environment
+# ----------------------------------------------------------------------------------------------------
+parameters: 
+- name: variableGroupName
+  default:  'myVariableGroup'
+- name: environmentName
+  default:  'DEV'
+- name: runDateTime
+  default:  '12-31-2020 23:59:59'
+# ------------------------------------------------------------------------------------------------------------------------
+jobs:
+- deployment: DeployApplication
+  displayName: Initialize Deploy App
+  environment: ${{ parameters.environmentName }}
+
+- job: DeployApplicationJob
+  displayName: Deploy Application
+
+  variables:
+    - group: 'IoTDemo-Deploy-WebSite'
+    - name: projectName
+      value: 'IoT.Dashboard'
+    - name: solution
+      value: 'Dashboard/*.sln'
+    - name: buildPlatform
+      value: 'Any CPU'
+    - name: buildConfiguration
+      value: 'Release'
+    - name: appVersion
+      value: $(Build.BuildNumber)
+
+  steps:
+  - task: DownloadPipelineArtifact@2
+    displayName: 'Download Pipeline Artifacts'
+    inputs:
+      artifact: websitedrop
+      
+  - task: CmdLine@2
+    inputs:
+      script: |
+        echo "serviceConnectionName=$(serviceConnectionName)"
+        echo "environmentNameUpper=$(environmentNameUpper)"
+        echo "environmentNameLower=$(environmentNameLower)"
+        echo "resourceGroupName=$(resourceGroupName)"
+        echo "projectName=$(projectName)"
+        echo "solution=$(solution)"
+        echo "buildPlatform=$(buildPlatform)"
+        echo "buildConfiguration=$(buildConfiguration)"
+        echo "appVersion=$(appVersion)"
+        echo "Directory of pipeline workspace:"
+        tree $(Pipeline.Workspace)
+    displayName: 'Display Variables and Tree'
+
+  #- script: |
+  #    echo 'Build.ArtifactStagingDirectory: $(Build.ArtifactStagingDirectory)'
+  #    echo 'System.ArtifactsDirectory: $(System.ArtifactsDirectory)'
+  #    echo 'System.DefaultWorkingDirectory: $(System.DefaultWorkingDirectory)'
+  #  displayName: 'Show Build Folder Paths'
+  #  continueOnError: true
+
+  - task: AzureRmWebAppDeployment@4
+    displayName: 'Publish App to Azure'
+    inputs:
+      ConnectionType: AzureRM
+      azureSubscription: '$(serviceConnectionName)'
+      appType: webAppLinux
+      WebAppName: $(webAppName)
+      Package: "$(Build.ArtifactStagingDirectory)/../website-$(appPrefix)*.zip"
+      enableCustomDeployment: true
+      deploymentMethod: zipDeployment

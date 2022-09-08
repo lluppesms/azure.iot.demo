@@ -1,0 +1,66 @@
+﻿@using Microsoft.AspNetCore.Components.Web
+@namespace IoT.Dashboard.Pages
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>IoT Example Dashboard</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <base href="~/" />
+    <link href="bootstrap/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+    <link href="bootstrap/css/bootstrap-grid.css" rel="stylesheet" type="text/css" />
+    <link href="fontawesome/css/all.css" rel="stylesheet" type="text/css" />
+    <link href="_content/Sotsera.Blazor.Toaster/toastr.min.css" rel="stylesheet" type="text/css" />
+    <link href="css/site.css" rel="stylesheet" type="text/css" />
+
+<!-- CSS For Blazorise -->
+    <link href="_content/Blazorise/blazorise.css" rel="stylesheet" type="text/css" />
+    <link href="_content/Blazorise.Bootstrap/blazorise.bootstrap.css" rel="stylesheet"  type="text/css" />
+    @*<link href="_content/Blazorise/blazorise.sidebar.css" rel="stylesheet" />*@
+    @*<link href="_content/Blazorise.Snackbar/blazorise.snackbar.css" rel="stylesheet" />*@
+<!-- /CSS For Blazorise -->
+
+    <link rel="apple-touch-icon" sizes="512x512" href="icon-512.png" />
+    <link rel="apple-touch-icon" sizes="192x192" href="icon-192.png" />
+
+    <component type="typeof(HeadOutlet)" render-mode="ServerPrerendered" />
+</head>
+<body>
+    <div class="backgroundimage-wrap">
+        <div class="backgroundimage-content" id="app">
+          @RenderBody()
+        </div>
+    </div>
+
+    <div id="blazor-error-ui">
+        <environment include="Staging,Production">
+            An error has occurred. This application may no longer respond until reloaded.
+        </environment>
+        <environment include="Development">
+            An unhandled exception has occurred. See browser dev tools for details.
+        </environment>
+        <a href="" class="reload">Reload</a>
+        <a class="dismiss">��</a>
+    </div>
+
+    <script src="_framework/blazor.server.js"></script>
+    <script src="scripts/BlazorInterop.js"></script>
+
+<!-- Scripts For bootstrap -->
+    <script src="bootstrap/js/bootstrap.min.js"></script>
+<!-- /Scripts For bootstrap -->
+
+<!-- Scripts For Sweet Alert -->
+    <script src="_content/CurrieTechnologies.Razor.SweetAlert2/sweetAlert2.min.js"></script>
+<!-- /Scripts For Sweet Alert -->
+
+<!-- Scripts For Blazorise -->
+    <script src="//code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
+    <script src="//cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js" integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN" crossorigin="anonymous"></script>
+    <script src="//cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.min.js" integrity="sha384-+YQ4JLhjyBLPDQt//I+STsc9iw4uQqACwlvpslubQzn4u2UU2UFM80nGisd026JF" crossorigin="anonymous"></script>
+<!-- /Scripts For Blazorise -->
+
+</body>
+</html>

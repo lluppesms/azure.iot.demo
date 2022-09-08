@@ -1,0 +1,42 @@
+﻿@inherits LayoutComponentBase
+@using Sotsera.Blazor.Toaster
+@using System.Reflection
+@using Blazorise
+
+<PageTitle>IoT.Dashboard</PageTitle>
+
+<Layout>
+    <LayoutHeader Fixed="true">
+       <div class="top-bar">
+         <a class="logo hideIfReallyNarrow" href=""><img src="/images/DeviceIconWhite.png" height="40" alt="Logo" /></a>
+         <a class="navbar-brand" href="">IoT Example Dashboard</a>
+         <NavMenu />
+        </div>
+    </LayoutHeader>
+
+    <LayoutContent>
+        <Div Class="LayoutContentStyle">
+            @Body
+        </Div>
+        <ToastContainer />
+    </LayoutContent>
+
+    <LayoutFooter Fixed="true" Class="LayoutFooterStyle">
+        <Row>
+            <Column ColumnSize="ColumnSize.Is10">
+                Copyright @thisYear, Luppes Consulting, Inc.  
+                <a href="/Privacy">Privacy</a>
+                <a href="/License">License</a>
+            </Column>
+            <Column ColumnSize="ColumnSize.Is2" TextAlignment="TextAlignment.End">
+                Version @assemblyVersionNumber
+            </Column>
+        </Row>
+    </LayoutFooter>
+</Layout>
+
+@code {
+    int thisYear = DateTime.Today.Year;
+    string assemblyVersionNumber => Assembly.GetEntryAssembly().GetName().Version.ToString();
+    //string infoVersionNumber => Assembly.GetEntryAssembly().GetCustomAttribute<AssemblyInformationalVersionAttribute>().InformationalVersion;
+}

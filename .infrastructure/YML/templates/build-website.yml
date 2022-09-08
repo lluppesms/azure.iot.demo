@@ -1,0 +1,137 @@
+# ----------------------------------------------------------------------------------------------------
+# Template to build Azure Website and create artifacts
+# ----------------------------------------------------------------------------------------------------
+parameters: 
+- name: variableGroupName
+  default:  'myVariableGroup'
+- name: environmentName
+  default:  'DEV'
+- name: runDateTime
+  default:  '12-31-2020 23:59:59'
+# ------------------------------------------------------------------------------------------------------------------------
+jobs:
+- deployment: BuildApplication
+  displayName: Initialize Build App
+  environment: ${{ parameters.environmentName }}
+
+- job: BuildApplicationJob
+  displayName: Build Application
+
+  variables:
+    - group: ${{ parameters.variableGroupName }}
+    - name: projectName
+      value: 'IoT.Dashboard'
+    - name: solution
+      value: 'IoT.Dashboard.sln'
+    - name: buildPlatform
+      value: 'Any CPU'
+    - name: buildConfiguration
+      value: 'Release'
+    - name: appVersion
+      value: $(Build.BuildNumber)
+    - name: rootDirectory
+      value: '$(System.DefaultWorkingDirectory)/Dashboard'
+    - name: workingDirectory
+      value: '$(System.DefaultWorkingDirectory)/Dashboard/IoT.Dashboard'
+
+  steps:
+  - task: CmdLine@2
+    inputs:
+      script: |
+        echo "solution=$(solution)"
+        echo "rootDirectory=$(rootDirectory)"
+        echo "workingDirectory=$(workingDirectory)"
+        echo "buildConfiguration=$(buildConfiguration)"
+        echo "buildPlatform=$(buildPlatform)"
+        echo "Build.BuildNumber=$(Build.BuildNumber)"
+        echo "Build.BuildId=$(Build.BuildId)"
+        echo "Build.ArtifactStagingDirectory=$(Build.ArtifactStagingDirectory)"
+        echo "System.DefaultWorkingDirectory=$(System.DefaultWorkingDirectory)"
+        echo "Build.SourceVersion=$(Build.SourceVersion)"
+        echo "Build.SourcesDirectory=$(Build.SourcesDirectory)"
+        echo "appPrefix=$(appPrefix)"
+        echo "Directory of System.DefaultWorkingDirectory:"
+        tree $(System.DefaultWorkingDirectory)
+    displayName: 'Display Variables'
+
+  - task: NuGetToolInstaller@1
+
+  - task: NuGetCommand@2
+    inputs:
+      command: 'restore'
+      restoreSolution: '$(rootDirectory)/$(solution)'
+    continueOnError: true
+
+  - script: |
+      echo -e -n "{\"buildNumber\":\"$(Build.BuildNumber)\",\"buildId\":\"$(Build.BuildId)\",\"branchName\":\"$(Build.SourceBranchName)\",\"commitHash\":\"$(Build.SourceVersion)\"}" > "$(workingDirectory)/buildinfo.json"
+    displayName: "Put Build Details in buildinfo.json"
+    continueOnError: true
+  
+  - task: Assembly-Info-NetCore@3
+    displayName: 'Update Assembly Version'
+    inputs:
+      Path: '$(Build.SourcesDirectory)'
+      FileNames: '$(workingDirectory)/*.csproj'
+      InsertAttributes: true
+      FileEncoding: 'auto'
+      WriteBOM: true
+      FailOnWarning: true
+      PackageVersion: '$(appVersion)'
+      UpdateBuildNumber: '$(appVersion)'
+      AddBuildTag: 'v$(appVersion)'
+    continueOnError: true
+    
+  - task: VSBuild@1
+    displayName: 'Build Application'
+    inputs:
+      solution: '$(rootDirectory)/$(solution)'
+      msbuildArgs: '/p:DeployOnBuild=true /p:WebPublishMethod=Package /p:SkipInvalidConfigurations=true'
+      platform: '$(buildPlatform)'
+      configuration: '$(buildConfiguration)'
+      
+  - task: VSTest@2
+    displayName: 'Test Application'
+    inputs:
+      searchFolder: '$(rootDirectory)'
+      platform: '$(buildPlatform)'
+      configuration: '$(buildConfiguration)'
+      
+  - task: DotNetCoreCLI@2
+    displayName: "Publish Artifacts"
+    inputs:
+      command: 'publish'
+      projects: '$(rootDirectory)/$(solution)'
+      publishWebProjects: true
+      arguments:   --self-contained false --output $(System.DefaultWorkingDirectory)/website_output
+
+  - task: ArchiveFiles@2
+    displayName: 'Zip Output'
+    inputs:
+      rootFolderOrFile: '$(System.DefaultWorkingDirectory)/website_output'
+      includeRootFolder: false
+      archiveType: zip
+      archiveFile: $(Build.ArtifactStagingDirectory)/website-$(appPrefix)$(Build.BuildId).zip
+      replaceExistingArchive: true
+
+
+  # - task: PublishPipelineArtifact@1
+  #   displayName: 'Publish Artifact'
+  #   inputs:
+  #     targetPath: '$(System.DefaultWorkingDirectory)/website_output'
+  #     artifact: website
+  #     publishLocation: 'pipeline'
+
+  - task: PublishPipelineArtifact@1
+    displayName: 'Publish Artifact'
+    inputs:
+      targetPath: '$(Build.ArtifactStagingDirectory)'
+      artifact: websitedrop
+      publishLocation: 'pipeline'
+
+  - task: CmdLine@2
+    inputs:
+      script: |
+        tree $(System.DefaultWorkingDirectory)
+        tree $(Build.ArtifactStagingDirectory)
+    displayName: 'Display Directory Tree'
+

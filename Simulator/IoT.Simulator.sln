@@ -1,0 +1,30 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.2.32516.85
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IoT.Simulator", "IoT.Simulator\IoT.Simulator.csproj", "{0E7576FD-2E03-4A50-B299-4A3FB835A523}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{23DC0536-D938-451E-AFAA-2D418BA1B1FF}"
+	ProjectSection(SolutionItems) = preProject
+		..\DeployToAzure\YML\Deploy-Simulator.yml = ..\DeployToAzure\YML\Deploy-Simulator.yml
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{0E7576FD-2E03-4A50-B299-4A3FB835A523}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0E7576FD-2E03-4A50-B299-4A3FB835A523}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0E7576FD-2E03-4A50-B299-4A3FB835A523}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0E7576FD-2E03-4A50-B299-4A3FB835A523}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {26733DD8-8C34-4880-AF3A-D5F864B3449E}
+	EndGlobalSection
+EndGlobal

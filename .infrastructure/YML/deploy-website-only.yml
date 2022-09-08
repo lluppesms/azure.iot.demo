@@ -1,0 +1,224 @@
+# ------------------------------------------------------------------------------------------------------------------------
+# Pipeline to deploy IoT Dashboard WebSite for the IoT Demo Project
+# ------------------------------------------------------------------------------------------------------------------------
+# Note: This pipeline needs a variable group "IoTDemo-<env>" -> one for EACH environment being deployed.
+#  See ../Docs/VariableGroups.md for details
+# ------------------------------------------------------------------------------------------------------------------------
+name: $(date:yyyy).$(date:MM).$(date:dd)$(rev:.r)
+pool:
+  vmImage: 'windows-latest'
+
+# ------------------------------------------------------------------------------------------------------------------------
+trigger:
+  branches:
+    include: 
+      - master
+  paths:
+    include:
+      - Dashboard
+    exclude: 
+      - '**/*.yml'
+      - '**/*.yaml'
+      - '**/*.bicep'
+
+stages:
+- stage: BuildWebApp
+  displayName: Build Web App
+  jobs:
+  - template: templates/build-website.yml
+    parameters:
+      variableGroupName: 'IoTDemo-Dev'
+      environmentName: 'DEV'
+      runDateTime: 'Pipeline-$(Build.BuildNumber)'
+
+- stage: DeployWebAppDEV
+  displayName: DEV Web App
+  dependsOn: BuildWebApp
+  condition: succeeded('BuildWebApp')
+  jobs:
+  - template: templates/deploy-website.yml
+    parameters:
+      variableGroupName: 'IoTDemo-Dev'
+      environmentName: 'DEV'
+      runDateTime: 'Pipeline-$(Build.BuildNumber)'
+
+- stage: DeployWebAppQA
+  displayName: QA Web App
+  dependsOn: DeployWebAppDEV
+  condition: succeeded('DeployWebAppDEV')
+  jobs:
+  - template: templates/deploy-website.yml
+    parameters:
+      variableGroupName: 'IoTDemo-QA'
+      environmentName: 'QA'
+      runDateTime: 'Pipeline-$(Build.BuildNumber)'
+      
+# # ------------------------------------------------------------------------------------------------------------------------
+# variables:
+#   - group: 'IoTDemo-Deploy-WebSite'
+#   - name: projectName
+#     value: 'IoT.Dashboard'
+#   - name: solution
+#     value: 'Dashboard/*.sln'
+#   - name: buildPlatform
+#     value: 'Any CPU'
+#   - name: buildConfiguration
+#     value: 'Release'
+#   - name: appVersion
+#     value: $(Build.BuildNumber)
+
+# stages:
+# - stage: BuildProgram
+#   displayName: Build Program
+#   jobs:
+#   - job: Build
+#     displayName: Build
+#     steps:
+#     - task: NuGetToolInstaller@1
+
+#     - task: NuGetCommand@2
+#       inputs:
+#         restoreSolution: '$(solution)'
+
+#     - script: |
+#         echo -e -n "{\"buildNumber\":\"$(Build.BuildNumber)\",\"buildId\":\"$(Build.BuildId)\",\"branchName\":\"$(Build.SourceBranchName)\",\"commitHash\":\"$(Build.SourceVersion)\"}" > "$(Build.SourcesDirectory)/buildinfo.json"
+#       displayName: "Put Build Details in buildinfo.json"
+#       continueOnError: true
+    
+#     - task: Assembly-Info-NetCore@3
+#       displayName: 'Update Assembly Version'
+#       inputs:
+#         Path: '$(Build.SourcesDirectory)'
+#         FileNames: '**/*.csproj'
+#         InsertAttributes: true
+#         FileEncoding: 'auto'
+#         WriteBOM: true
+#         FailOnWarning: true
+#         PackageVersion: '$(appVersion)'
+#         UpdateBuildNumber: '$(appVersion)'
+#         AddBuildTag: 'v$(appVersion)'
+#       continueOnError: true
+      
+#     - task: VSBuild@1
+#       displayName: 'Build Application'
+#       inputs:
+#         solution: '$(solution)'
+#         msbuildArgs: '/p:DeployOnBuild=true /p:WebPublishMethod=Package /p:SkipInvalidConfigurations=true'
+#         platform: '$(buildPlatform)'
+#         configuration: '$(buildConfiguration)'
+        
+#     - task: VSTest@2
+#       displayName: 'Test Application'
+#       inputs:
+#         platform: '$(buildPlatform)'
+#         configuration: '$(buildConfiguration)'
+        
+#     - task: DotNetCoreCLI@2
+#       displayName: "Publish Artifacts"
+#       inputs:
+#         command: 'publish'
+#         publishWebProjects: true
+#         arguments:   --self-contained false --output $(Build.ArtifactStagingDirectory)
+
+#     - task: PublishBuildArtifacts@1
+#       displayName: 'Save Artifacts'
+#       inputs:
+#         PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+#         ArtifactName: 'drop'
+#         publishLocation: 'Container'
+
+# # ------------------------------------------------------------------------------------------------------------------------
+# - stage: DeployDEV
+#   displayName: Dev Deploy stage
+#   dependsOn: BuildProgram
+#   condition: succeeded()
+
+#   jobs:
+#   - deployment: DeployDev
+#     displayName: Deploy DEV
+#     environment: 'DEV'
+
+#     strategy:
+#       runOnce:
+#         deploy:
+#           steps:
+
+#           - task: DownloadBuildArtifacts@0
+#             displayName: 'Download Artifacts'
+#             inputs:
+#               PathtoDownload: '$(Build.ArtifactStagingDirectory)'
+#               ArtifactName: 'drop'
+#               downloadLocation: 'Container'
+
+#           - powershell: |
+#               Write-Host "Show all folder content"
+#               Get-ChildItem -Path $(Build.ArtifactStagingDirectory)\..\*.* -Recurse -Force
+#             errorActionPreference: continue
+#             displayName: 'List Working Folder Contents'
+#             continueOnError: true
+
+#           #- script: |
+#           #    echo 'Build.ArtifactStagingDirectory: $(Build.ArtifactStagingDirectory)'
+#           #    echo 'System.ArtifactsDirectory: $(System.ArtifactsDirectory)'
+#           #    echo 'System.DefaultWorkingDirectory: $(System.DefaultWorkingDirectory)'
+#           #  displayName: 'Show Build Folder Paths'
+#           #  continueOnError: true
+
+#           - task: AzureRmWebAppDeployment@4
+#             displayName: 'Publish App to Azure'
+#             inputs:
+#               ConnectionType: AzureRM
+#               azureSubscription: '$(subscriptionNameDev)'
+#               appType: webAppLinux
+#               WebAppName: $(webAppNameDev)
+#               Package: "$(Build.ArtifactStagingDirectory)/../drop/$(projectName).zip"
+#               enableCustomDeployment: true
+#               deploymentMethod: zipDeployment
+
+# # ------------------------------------------------------------------------------------------------------------------------
+# - stage: DeployQA
+#   displayName: QA Deploy stage
+#   dependsOn: DeployDEV
+#   condition: succeeded()
+
+#   jobs:
+#   - deployment: DeployQA
+#     displayName: Deploy QA
+#     environment: 'QA'
+
+#     strategy:
+#       runOnce:
+#         deploy:
+#           steps:
+
+#           - task: DownloadBuildArtifacts@0
+#             displayName: 'Download Artifacts'
+#             inputs:
+#               PathtoDownload: '$(Build.ArtifactStagingDirectory)'
+#               ArtifactName: 'drop'
+#               downloadLocation: 'Container'
+
+#           - powershell: |
+#               Write-Host "Show all folder content"
+#               Get-ChildItem -Path $(Build.ArtifactStagingDirectory)\..\*.* -Recurse -Force
+#             errorActionPreference: continue
+#             displayName: 'List Working Folder Contents'
+#             continueOnError: true
+
+#           #- script: |
+#           #    echo 'Build.ArtifactStagingDirectory: $(Build.ArtifactStagingDirectory)'
+#           #    echo 'System.ArtifactsDirectory: $(System.ArtifactsDirectory)'
+#           #    echo 'System.DefaultWorkingDirectory: $(System.DefaultWorkingDirectory)'
+#           #  displayName: 'Show Build Folder Paths'
+#           #  continueOnError: true
+
+#           - task: AzureRmWebAppDeployment@4
+#             displayName: 'Publish App to Azure'
+#             inputs:
+#               ConnectionType: AzureRM
+#               azureSubscription: '$(subscriptionNameQA)'
+#               appType: webAppLinux
+#               WebAppName: $(webAppNameQA)
+#               Package: "$(Build.ArtifactStagingDirectory)/../drop/$(projectName).zip"
+#               enableCustomDeployment: true
+#               deploymentMethod: zipDeployment
