@@ -29,6 +29,7 @@ These commands actually create the variable groups:
         appSuffix=''
         serviceConnectionName='<yourServiceConnection>' 
         subscriptionId='<yourSubscriptionId>' 
+        subscriptionName='<yourSubscriptionName>' 
         location='eastus' 
         storageSku='Standard_LRS' 
         functionName='process'
