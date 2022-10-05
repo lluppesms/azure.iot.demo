@@ -20,6 +20,10 @@ jobs:
 
   variables:
     - group: CodeSigning
+    - name: environmentNameLower
+      value: ${{ lower(parameters.environmentName) }}
+    - name: blobPrefix
+      value: 'IoT-Simulator/'
 
   steps:
   - task: DownloadBuildArtifacts@0
@@ -43,7 +47,7 @@ jobs:
         echo "SubscriptionName=$(SubscriptionName)"
         echo "storageAccountName=$(storageAccountName)"
         echo "storageFolderName=$(storageFolderName)"
-        echo "BlobPrefix=$(BlobPrefix)"
+        echo "blobPrefix=$(blobPrefix)"
         echo "Directory of pipeline workspace:"
         tree $(System.ArtifactsDirectory)
         dir $(System.ArtifactsDirectory) /s
