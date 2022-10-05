@@ -17,6 +17,10 @@ jobs:
   
 - job: AzureFileCopy
   displayName: 'Copy Files to Azure Storage'
+
+  variables:
+    - group: CodeSigning
+
   steps:
   - task: DownloadBuildArtifacts@0
     displayName: 'Download Artifacts'
