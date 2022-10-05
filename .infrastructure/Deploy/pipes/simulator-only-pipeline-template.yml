@@ -1,0 +1,29 @@
+# ------------------------------------------------------------------------------------------------------------------------
+# Pipeline to build IoT Simulator; compiles for both Windows (x64) and Linux; copies EXE to storage for downloading ease
+# ------------------------------------------------------------------------------------------------------------------------
+parameters:
+- name: environments
+  type: object
+  default: ['DEV'] # or ['DEV','QA'] or ['DEV','QA','PROD'] or ['DEV','QA','STG','PROD']
+- name: variableGroupName
+  default: 'myVariableGroupName'
+
+# ------------------------------------------------------------------------------------------------------------------------
+stages:
+- stage: BuildSimulator
+  displayName: Build Simulator
+  jobs:
+  - template: templates/simulator-build-template.yml
+    parameters:
+      variableGroupName: ${{ parameters.variableGroupName }}
+      environmentName: 'DEV'
+
+# ----------------------------------------------------------------------------------------------------
+- ${{ each environmentName in parameters.environments }} :
+  - stage: DeploySimulator${{ environmentName }}
+    displayName: Deploy ${{ environmentName }} Simulator
+    jobs:
+    - template: templates/simulator-publish-template.yml
+      parameters:
+        variableGroupName: ${{ parameters.variableGroupName }}
+        environmentName: ${{ environmentName }}

@@ -1,16 +1,18 @@
 ﻿// --------------------------------------------------------------------------------
 // Main file that deploys all Azure Resources for one environment
 // --------------------------------------------------------------------------------
-// Note 1: To make this pipeline work, your service principal may need to be in the
-//   "acr pull" role for the container registry.
-// --------------------------------------------------------------------------------
-// Note 2: To deploy this Bicep manually:
+// Note: To deploy this Bicep manually:
 // 	 az login
 //   az account set --subscription <subscriptionId>
 //   az deployment group create -n main-deploy-20220823T110000Z --resource-group rg_iotdemo_dev --template-file 'main.bicep' --parameters orgPrefix=lll appPrefix=iotdemo environmentCode=dev keyVaultOwnerUserId1=xxxxxxxx-xxxx-xxxx keyVaultOwnerUserId2=xxxxxxxx-xxxx-xxxx
 //   az deployment group create -n main-deploy-20220823T110000Z --resource-group rg_iotdemo_qa  --template-file 'main.bicep' --parameters orgPrefix=lll appPrefix=iotdemo environmentCode=qa  keyVaultOwnerUserId1=xxxxxxxx-xxxx-xxxx keyVaultOwnerUserId2=xxxxxxxx-xxxx-xxxx
 // --------------------------------------------------------------------------------
-// Note 3: To list the available bicep container registry image tags:
+// Bicep Container Registry Notes: 
+// If you use a Bicep Container Registry, your service principal may need to be in the
+//   "acr pull" role for the container registry.
+// To use a Bicep Container Registry, use this syntax:
+//   module storageModule 'br/mybiceprepository:storageaccount:2022-08-31.335' = {
+// Tip: To list the available bicep container registry image tags:
 //   $registryName = 'lllbicepregistry'
 //   Write-Host "Scanning for repository tags in $registryName"
 //   az acr repository list --name $registryName -o tsv | Foreach-Object { 
@@ -37,13 +39,12 @@ param webSiteSku string = 'B1'
 // --------------------------------------------------------------------------------
 var deploymentSuffix = '-${runDateTime}'
 
-//module storageModule 'br/lllbicepmodules:storageaccount:2022-09-04.425' = {
 module storageModule 'storageaccount.bicep' = {
   name: 'storage${deploymentSuffix}'
   params: {
     storageSku: storageSku
 
-    templateFileName: 'storageaccount:2022-09-04.425'
+    templateFileName: 'storageaccount.bicep'
     orgPrefix: orgPrefix
     appPrefix: appPrefix
     environmentCode: environmentCode
@@ -52,11 +53,11 @@ module storageModule 'storageaccount.bicep' = {
     runDateTime: runDateTime
   }
 }
-//module iotHubModule 'br/lllbicepmodules:iothub:2022-09-04.425' = {
+
 module iotHubModule 'iothub.bicep' = {
   name: 'iotHub${deploymentSuffix}'
   params: {
-    templateFileName: 'iotHub:2022-09-04.425'
+    templateFileName: 'iotHub.bicep'
     orgPrefix: orgPrefix
     appPrefix: appPrefix
     environmentCode: environmentCode
@@ -65,14 +66,13 @@ module iotHubModule 'iothub.bicep' = {
     runDateTime: runDateTime
   }
 }
-//module dpsModule 'br/lllbicepmodules:dps:2022-08-31.335' = {
 module dpsModule 'dps.bicep' = {
   name: 'dps${deploymentSuffix}'
   dependsOn: [ iotHubModule ]
   params: {
     iotHubName: iotHubModule.outputs.iotHubName
 
-    templateFileName: 'dps:2022-08-31.335'
+    templateFileName: 'dps.bicep'
     orgPrefix: orgPrefix
     appPrefix: appPrefix
     environmentCode: environmentCode
@@ -81,11 +81,11 @@ module dpsModule 'dps.bicep' = {
     runDateTime: runDateTime
   }
 }
-//module signalRModule 'br/lllbicepmodules:signalr:2022-09-04.425' = {
+
 module signalRModule 'signalr.bicep' = {
   name: 'signalR${deploymentSuffix}'
   params: {
-    templateFileName: 'signalr:2022-09-04.425'
+    templateFileName: 'signalr.bicep'
     orgPrefix: orgPrefix
     appPrefix: appPrefix
     environmentCode: environmentCode
@@ -94,13 +94,13 @@ module signalRModule 'signalr.bicep' = {
     runDateTime: runDateTime
   }
 }
-//module servicebusModule 'br/lllbicepmodules:servicebus:2022-08-31.335' = {
+
 module servicebusModule 'servicebus.bicep' = {
   name: 'servicebus${deploymentSuffix}'
   params: {
     queueNames: [ 'iotmsgs', 'filemsgs' ]
 
-    templateFileName: 'servicebus:2022-08-31.335'
+    templateFileName: 'servicebus.bicep'
     orgPrefix: orgPrefix
     appPrefix: appPrefix
     environmentCode: environmentCode
@@ -109,7 +109,7 @@ module servicebusModule 'servicebus.bicep' = {
     runDateTime: runDateTime
   }
 }
-//module streamingModule 'br/lllbicepmodules:streaming:2022-09-04.425' = {
+
 module streamingModule 'streaming.bicep' = {
   name: 'streaming${deploymentSuffix}'
   params: {
@@ -117,7 +117,7 @@ module streamingModule 'streaming.bicep' = {
     svcBusName: servicebusModule.outputs.serviceBusName
     svcBusQueueName: 'iotmsgs'
 
-    templateFileName: 'streaming:2022-09-04.425'
+    templateFileName: 'streaming.bicep'
     orgPrefix: orgPrefix
     appPrefix: appPrefix
     environmentCode: environmentCode
@@ -131,14 +131,13 @@ var cosmosContainerArray = [
   { name: 'DeviceData', partitionKey: '/partitionKey' }
   { name: 'DeviceInfo', partitionKey: '/partitionKey' }
 ]
-//module cosmosModule 'br/lllbicepmodules:cosmosdatabase:2022-08-31.335' = {
 module cosmosModule 'cosmosdatabase.bicep' = {
   name: 'cosmos${deploymentSuffix}'
   params: {
     containerArray: cosmosContainerArray
     cosmosDatabaseName: 'IoTDatabase'
 
-    templateFileName: 'cosmosdatabase:2022-08-31.335'
+    templateFileName: 'cosmosdatabase.bicep'
     orgPrefix: orgPrefix
     appPrefix: appPrefix
     environmentCode: environmentCode
@@ -147,7 +146,7 @@ module cosmosModule 'cosmosdatabase.bicep' = {
     runDateTime: runDateTime
   }
 }
-//module functionModule 'br/lllbicepmodules:functionapp:2022-09-04.425' = {
+
 module functionModule 'functionapp.bicep' = {
   name: 'function${deploymentSuffix}'
   dependsOn: [ storageModule ]
@@ -160,7 +159,7 @@ module functionModule 'functionapp.bicep' = {
     functionStorageAccountName: storageModule.outputs.functionStorageAccountName
     appInsightsLocation: location
 
-    templateFileName: 'functionapp:2022-09-04.425'
+    templateFileName: 'functionapp.bicep'
     orgPrefix: orgPrefix
     appPrefix: appPrefix
     environmentCode: environmentCode
@@ -170,14 +169,13 @@ module functionModule 'functionapp.bicep' = {
   }
 }
 
-//module webSiteModule 'br/lllbicepmodules:website:2022-09-04.425' = {
 module webSiteModule 'website.bicep' = {
   name: 'webSite${deploymentSuffix}'
   params: {
     appInsightsLocation: location
     sku: webSiteSku
 
-    templateFileName: 'website:2022-09-04.425'
+    templateFileName: 'website.bicep'
     orgPrefix: orgPrefix
     appPrefix: appPrefix
     environmentCode: environmentCode
@@ -187,7 +185,6 @@ module webSiteModule 'website.bicep' = {
   }
 }
 
-//module keyVaultModule 'br/lllbicepmodules:keyvault:2022-08-31.335' = {
 module keyVaultModule 'keyvault.bicep' = {
   name: 'keyvault${deploymentSuffix}'
   dependsOn: [ functionModule, webSiteModule ]
@@ -195,7 +192,7 @@ module keyVaultModule 'keyvault.bicep' = {
     adminUserObjectIds: [ keyVaultOwnerUserId1, keyVaultOwnerUserId2 ]
     applicationUserObjectIds: [ functionModule.outputs.functionAppPrincipalId, webSiteModule.outputs.websiteAppPrincipalId ]
 
-    templateFileName: 'keyvault:2022-08-31.335'
+    templateFileName: 'keyvault.bicep'
     orgPrefix: orgPrefix
     appPrefix: appPrefix
     environmentCode: environmentCode
@@ -205,7 +202,6 @@ module keyVaultModule 'keyvault.bicep' = {
   }
 }
 
-//module keyVaultSecret1 'br/lllbicepmodules:keyvaultsecretiothubconnection:2022-08-26.314' = {
 module keyVaultSecret1 'keyvaultsecretiothubconnection.bicep' = {
   name: 'keyVaultSecret1${deploymentSuffix}'
   dependsOn: [ keyVaultModule, iotHubModule ]
@@ -215,7 +211,7 @@ module keyVaultSecret1 'keyvaultsecretiothubconnection.bicep' = {
     iotHubName: iotHubModule.outputs.iotHubName
   }
 }
-//module keyVaultSecret2 'br/lllbicepmodules:keyvaultsecretstorageconnection:2022-08-26.314' = {
+
 module keyVaultSecret2 'keyvaultsecretstorageconnection.bicep' = {
   name: 'keyVaultSecret2${deploymentSuffix}'
   dependsOn: [ keyVaultModule, iotHubModule ]
@@ -225,7 +221,7 @@ module keyVaultSecret2 'keyvaultsecretstorageconnection.bicep' = {
     storageAccountName: iotHubModule.outputs.iotStorageAccountName
   }
 }
-//module keyVaultSecret3 'br/lllbicepmodules:keyvaultsecretsignalrconnection:2022-08-26.314' = {
+
 module keyVaultSecret3 'keyvaultsecretsignalrconnection.bicep' = {
   name: 'keyVaultSecret3${deploymentSuffix}'
   dependsOn: [ keyVaultModule, signalRModule ]
@@ -235,7 +231,7 @@ module keyVaultSecret3 'keyvaultsecretsignalrconnection.bicep' = {
     signalRName: signalRModule.outputs.signalRName
   }
 }
-//module keyVaultSecret4 'br/lllbicepmodules:keyvaultsecretcosmosconnection:2022-08-26.314' = {
+
 module keyVaultSecret4 'keyvaultsecretcosmosconnection.bicep' = {
   name: 'keyVaultSecret4${deploymentSuffix}'
   dependsOn: [ keyVaultModule, cosmosModule ]
@@ -245,7 +241,7 @@ module keyVaultSecret4 'keyvaultsecretcosmosconnection.bicep' = {
     cosmosAccountName: cosmosModule.outputs.cosmosAccountName
   }
 }
-//module keyVaultSecret5 'br/lllbicepmodules:keyvaultsecretservicebusconnection:2022-08-26.314' = {
+
 module keyVaultSecret5 'keyvaultsecretservicebusconnection.bicep' = {
   name: 'keyVaultSecret5${deploymentSuffix}'
   dependsOn: [ keyVaultModule, servicebusModule ]
@@ -255,7 +251,7 @@ module keyVaultSecret5 'keyvaultsecretservicebusconnection.bicep' = {
     serviceBusName: servicebusModule.outputs.serviceBusName
   }
 }
-//module keyVaultSecret6 'br/lllbicepmodules:keyvaultsecret:2022-08-26.309' = {
+
 module keyVaultSecret6 'keyvaultsecret.bicep' = {
   name: 'keyVaultSecret6${deploymentSuffix}'
   dependsOn: [ keyVaultModule, functionModule ]
@@ -265,7 +261,7 @@ module keyVaultSecret6 'keyvaultsecret.bicep' = {
     secretValue: functionModule.outputs.functionInsightsKey
   }
 }
-//module keyVaultSecret7 'br/lllbicepmodules:keyvaultsecret:2022-08-26.309' = {
+
 module keyVaultSecret7 'keyvaultsecret.bicep' = {
   name: 'keyVaultSecret7${deploymentSuffix}'
   dependsOn: [ keyVaultModule, webSiteModule ]
@@ -275,7 +271,7 @@ module keyVaultSecret7 'keyvaultsecret.bicep' = {
     secretValue: webSiteModule.outputs.webSiteAppInsightsKey
   }
 }  
-//module functionAppSettingsModule 'br/lllbicepmodules:functionappsettings:2022-08-24.257' = {
+
 module functionAppSettingsModule 'functionappsettings.bicep' = {
   name: 'functionAppSettings${deploymentSuffix}'
   dependsOn: [ keyVaultSecret1, keyVaultSecret2, keyVaultSecret3, keyVaultSecret4, keyVaultSecret5, keyVaultSecret6, keyVaultSecret7 ]
@@ -296,7 +292,6 @@ module functionAppSettingsModule 'functionappsettings.bicep' = {
   }
 }
 
-//module webSiteAppSettingsModule 'br/lllbicepmodules:websiteappsettings:2022-08-24.259' = {
 module webSiteAppSettingsModule 'websiteappsettings.bicep' = {
   name: 'webSiteAppSettings${deploymentSuffix}'
   dependsOn: [ keyVaultSecret1, keyVaultSecret2, keyVaultSecret3, keyVaultSecret4, keyVaultSecret5, keyVaultSecret6, keyVaultSecret7 ]
