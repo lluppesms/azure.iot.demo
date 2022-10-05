@@ -85,7 +85,7 @@ jobs:
     displayName: 'Update Assembly Version'
     inputs:
       Path: '$(Build.SourcesDirectory)'
-      FileNames: '$(rootDirectory)\*.csproj'
+      FileNames: '$(rootDirectory)\$(projectName)\*.csproj'
       InsertAttributes: true
       FileEncoding: 'auto'
       WriteBOM: true

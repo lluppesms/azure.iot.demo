@@ -16,7 +16,7 @@ stages:
 - stage: BuildFunction
   displayName: Build Function
   jobs:
-  - template: templates/build-function-template.yml.yml
+  - template: templates/build-function-template.yml
     parameters:
       variableGroupName: ${{ parameters.variableGroupName }}
       environmentName: 'DEV'
