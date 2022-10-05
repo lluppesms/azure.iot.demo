@@ -61,7 +61,7 @@ jobs:
       azureSubscription: $(SubscriptionName)
       Destination: AzureBlob
       storage: $(storageAccountName)
-      ContainerName: $(storageFolder)
+      ContainerName: $(storageFolderName)
       BlobPrefix: $(blobPrefix)
       sasTokenTimeOutInMinutes: 240
 
@@ -72,6 +72,6 @@ jobs:
       azureSubscription: $(SubscriptionName)
       Destination: AzureBlob
       storage: $(storageAccountName)
-      ContainerName: $(storageFolder)
+      ContainerName: $(storageFolderName)
       BlobPrefix: $(blobPrefix)
       sasTokenTimeOutInMinutes: 240
