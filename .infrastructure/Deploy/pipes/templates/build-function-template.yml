@@ -22,15 +22,17 @@ jobs:
       value: '$(System.DefaultWorkingDirectory)/FunctionApp/IoT.Processor'
 
   steps:
-  - bash: |
-      echo "Build.ArtifactStagingDirectory=$(Build.ArtifactStagingDirectory)"
-      echo "System.DefaultWorkingDirectory=$(System.DefaultWorkingDirectory)"
-      echo "Build.BuildId=$(Build.BuildId)"
-      echo "appPrefix=$(appPrefix)"
-      tree $(System.DefaultWorkingDirectory)
-      dir $(System.DefaultWorkingDirectory) /s
-    continueOnError: true
-    displayName: 'Display Variables'
+  - task: CmdLine@2
+    inputs:
+      script: |
+        echo "Build.ArtifactStagingDirectory=$(Build.ArtifactStagingDirectory)"
+        echo "System.DefaultWorkingDirectory=$(System.DefaultWorkingDirectory)"
+        echo "Build.BuildId=$(Build.BuildId)"
+        echo "appPrefix=$(appPrefix)"
+        tree $(System.DefaultWorkingDirectory)
+        dir $(System.DefaultWorkingDirectory) /s
+      continueOnError: true
+      displayName: 'Display Variables'
 
   - task: DotNetCoreCLI@2
     displayName: 'Build project'

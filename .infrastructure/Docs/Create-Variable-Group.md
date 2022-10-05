@@ -31,6 +31,7 @@ These commands actually create the variable groups:
         subscriptionId='<yourSubscriptionId>' 
         location='eastus' 
         storageSku='Standard_LRS' 
+        functionName='process'
         functionAppSku='Y1' 
         functionAppSkuFamily='Y' 
         functionAppSkuTier='Dynamic' 

@@ -15,6 +15,7 @@ jobs:
 
 - job: Deploy${{ parameters.environmentName }}Function
   displayName: Deploy ${{ parameters.environmentName }} Function
+
   variables:
     - group: ${{ parameters.variableGroupName }}
     - name: environmentNameUpper
@@ -36,10 +37,12 @@ jobs:
   - task: CmdLine@2
     inputs:
       script: |
+        echo "appPrefix=$(appPrefix)"
+        echo "functionName=$(functionName)"
+        echo "functionAppName=$(functionAppName)"
         echo "serviceConnectionName=$(serviceConnectionName)"
         echo "environmentNameUpper=$(environmentNameUpper)"
         echo "environmentNameLower=$(environmentNameLower)"
-        echo "functionAppName=$(functionAppName)"
         echo "Directory of pipeline workspace:"
         tree $(Pipeline.Workspace)
         dir $(Pipeline.Workspace) /s
