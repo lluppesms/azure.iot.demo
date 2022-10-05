@@ -15,12 +15,12 @@ parameters:
 
 # ------------------------------------------------------------------------------------------------------------------------
 jobs:
-- deployment: Deploy${{ parameters.environmentName }}Website
-  displayName: Initialize ${{ parameters.environmentName }} Deploy Website
+- deployment: InitDeploy${{ parameters.environmentName }}Website
+  displayName: Initialize Deploy ${{ parameters.environmentName }} Website
   environment: ${{ parameters.environmentName }}
 
-- job: DeployApplication${{ parameters.environmentName }}WebsiteJob
-  displayName: Deploy ${{ parameters.environmentName }} Website Job
+- job: Deploy${{ parameters.environmentName }}Website
+  displayName: Deploy ${{ parameters.environmentName }} Website
   variables:
     - group: ${{ parameters.variableGroupName }}
     - name: environmentNameUpper

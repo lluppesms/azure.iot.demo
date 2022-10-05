@@ -1,0 +1,69 @@
+# ------------------------------------------------------------------------------------------------------------------------
+# Pipeline to copy IoT Simulator artifacts to storage folder
+# ------------------------------------------------------------------------------------------------------------------------
+parameters:
+- name: variableGroupName
+  default:  'myVariableGroup'
+- name: environmentName
+  default:  'DEV'
+- name: blobPrefix
+  default: 'IoT-Simulator/'
+
+# ----------------------------------------------------------------------------------------------------
+jobs:
+- deployment: DeployFiles
+  displayName: 'Download Artifacts'
+  environment: 'DEV'
+  
+- job: AzureFileCopy
+  displayName: 'Copy Files to Azure Storage'
+  steps:
+  - task: DownloadBuildArtifacts@0
+    displayName: 'Download Artifacts'
+    inputs:
+      buildType: 'current'
+      downloadType: 'single'
+      downloadPath: '$(System.ArtifactsDirectory)'
+      artifactName: 'drop'
+
+  - bash: |
+      storageFolderName=$(echo "downloads$(environmentNameLower)" | tr '[:upper:]' '[:lower:]')
+      echo "##vso[task.setvariable variable=storageFolderName]$storageFolderName"
+    displayName: 'Create Variables'
+    continueOnError: true
+
+  - task: CmdLine@2
+    inputs:
+      script: |
+        echo "environmentNameLower=$(environmentNameLower)"
+        echo "SubscriptionName=$(SubscriptionName)"
+        echo "storageAccountName=$(storageAccountName)"
+        echo "storageFolderName=$(storageFolderName)"
+        echo "BlobPrefix=$(BlobPrefix)"
+        echo "Directory of pipeline workspace:"
+        tree $(System.ArtifactsDirectory)
+        dir $(System.ArtifactsDirectory) /s
+    displayName: 'Display Variables and Tree'
+    continueOnError: true
+
+  - task: AzureFileCopy@4
+    displayName: 'AzureFileCopy: win-x64'
+    inputs:
+      SourcePath: '$(System.ArtifactsDirectory)/drop/win-x64'
+      azureSubscription: $(SubscriptionName)
+      Destination: AzureBlob
+      storage: $(storageAccountName)
+      ContainerName: $(storageFolder)
+      BlobPrefix: $(blobPrefix)
+      sasTokenTimeOutInMinutes: 240
+
+  - task: AzureFileCopy@4
+    displayName: 'AzureFileCopy: Linux'
+    inputs:
+      SourcePath: '$(System.ArtifactsDirectory)/drop/Linux'
+      azureSubscription: $(SubscriptionName)
+      Destination: AzureBlob
+      storage: $(storageAccountName)
+      ContainerName: $(storageFolder)
+      BlobPrefix: $(blobPrefix)
+      sasTokenTimeOutInMinutes: 240

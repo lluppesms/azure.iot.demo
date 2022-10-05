@@ -13,12 +13,12 @@ parameters:
 
 # ------------------------------------------------------------------------------------------------------------------------
 jobs:
-- deployment: Build${{ parameters.environmentName }}Website
-  displayName: Initialize ${{ parameters.environmentName }}Build Website
+- deployment: InitBuildWebsiteArtifacts
+  displayName: Initialize Build Website Artifacts
   environment: ${{ parameters.environmentName }}
 
-- job: Build${{ parameters.environmentName }}WebsiteJob
-  displayName: Build ${{ parameters.environmentName }} Website Job
+- job: BuildWebsiteArtifacts
+  displayName: Build Website Artifacts
 
   variables:
     - group: ${{ parameters.variableGroupName }}
