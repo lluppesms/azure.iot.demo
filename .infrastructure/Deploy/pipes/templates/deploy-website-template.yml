@@ -19,8 +19,8 @@ jobs:
   displayName: Initialize ${{ parameters.environmentName }} Deploy Website
   environment: ${{ parameters.environmentName }}
 
-- job: DeployApplication${{ parameters.environmentName }}Website
-  displayName: Deploy ${{ parameters.environmentName }} Website
+- job: DeployApplication${{ parameters.environmentName }}WebsiteJob
+  displayName: Deploy ${{ parameters.environmentName }} Website Job
   variables:
     - group: ${{ parameters.variableGroupName }}
     - name: environmentNameUpper
