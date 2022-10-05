@@ -9,8 +9,8 @@ parameters:
 
 # ----------------------------------------------------------------------------------------------------
 jobs:
-- deployment: Build${{ parameters.environmentName }}Function
-  displayName: Initialize ${{ parameters.environmentName }}Build Function
+- deployment: InitializeBuild${{ parameters.environmentName }}Function
+  displayName: Initialize ${{ parameters.environmentName }} Build Function
   environment: ${{ parameters.environmentName }}
 
 - job: Build${{ parameters.environmentName }}Function

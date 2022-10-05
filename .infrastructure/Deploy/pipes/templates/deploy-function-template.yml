@@ -9,12 +9,12 @@ parameters:
 
 # ----------------------------------------------------------------------------------------------------
 jobs:
-- deployment: Deploy${{ parameters.environmentName }}Function
-  displayName: Initialize ${{ parameters.environmentName }} Deploy Function
+- deployment: InitializeDeploy${{ parameters.environmentName }}Function
+  displayName: Initialize Deploy ${{ parameters.environmentName }} Function
   environment: ${{ parameters.environmentName }}
 
-- job: DeployApplicationJob
-  displayName: Deploy Application
+- job: Deploy${{ parameters.environmentName }}Function
+  displayName: Deploy ${{ parameters.environmentName }} Function
   variables:
     - group: ${{ parameters.variableGroupName }}
     - name: environmentNameUpper
