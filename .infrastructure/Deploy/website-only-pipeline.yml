@@ -25,7 +25,7 @@ stages:
 - template: pipes/website-only-pipeline-template.yml
   parameters:
     variableGroupName: 'IoTDemo'
-    folderName: 'IoT.Dashboard'
+    folderName: 'Dashboard'
     projectName: 'IoT.Dashboard'
     webAppName: 'Dashboard'
     environments: ['DEV','PROD']  # ['DEV'] or ['DEV','QA'] or ['DEV','QA','PROD']

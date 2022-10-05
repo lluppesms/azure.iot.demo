@@ -35,9 +35,9 @@ jobs:
     - name: appVersion
       value: $(Build.BuildNumber)
     - name: rootDirectory
-      value: '$(System.DefaultWorkingDirectory)/$(folderName)'
+      value: '$(System.DefaultWorkingDirectory)\$(folderName)'
     - name: workingDirectory
-      value: '$(System.DefaultWorkingDirectory)/$(folderName)/$(projectName)'
+      value: '$(System.DefaultWorkingDirectory)\$(folderName)\$(projectName)'
 
   steps:
   - bash: |
