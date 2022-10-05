@@ -17,8 +17,8 @@ jobs:
   displayName: Initialize ${{ parameters.environmentName }}Build Website
   environment: ${{ parameters.environmentName }}
 
-- job: Build${{ parameters.environmentName }}Website
-  displayName: Build ${{ parameters.environmentName }} Website
+- job: Build${{ parameters.environmentName }}WebsiteJob
+  displayName: Build ${{ parameters.environmentName }} Website Job
 
   variables:
     - group: ${{ parameters.variableGroupName }}
