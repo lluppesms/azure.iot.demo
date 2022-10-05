@@ -1,0 +1,29 @@
+# ------------------------------------------------------------------------------------------------------------------------
+# Pipeline to deploy IoT Function App Processor for the IoT Demo Project
+# ------------------------------------------------------------------------------------------------------------------------
+# Note: This pipeline needs a variable group "IoTDemo"
+#  See ../Docs/Create-Variable-Group.md for details
+# ------------------------------------------------------------------------------------------------------------------------
+name: $(date:yyyy).$(date:MM).$(date:dd)$(rev:.r)
+pool:
+  vmImage: windows-latest
+
+# ------------------------------------------------------------------------------------------------------------------------
+trigger:
+  branches:
+    include: 
+      - master
+  paths:
+    include:
+      - FunctionApp
+    exclude: 
+      - '**/*.yml'
+      - '**/*.yaml'
+      - '**/*.bicep'
+
+# ----------------------------------------------------------------------------------------------------
+stages:
+- template: pipes/function-only-pipeline-template.yml
+  parameters:
+    variableGroupName: 'IoTDemo'
+    environments: ['DEV','PROD']  # ['DEV'] or ['DEV','QA'] or ['DEV','QA','PROD']

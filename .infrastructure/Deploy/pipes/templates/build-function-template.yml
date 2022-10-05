@@ -6,17 +6,15 @@ parameters:
   default:  'myVariableGroup'
 - name: environmentName
   default:  'DEV'
-- name: runDateTime
-  default:  '12-31-2020 23:59:59'
 
 # ----------------------------------------------------------------------------------------------------
 jobs:
-- deployment: BuildApplication
-  displayName: Initialize Build App
+- deployment: Build${{ parameters.environmentName }}Function
+  displayName: Initialize ${{ parameters.environmentName }}Build Function
   environment: ${{ parameters.environmentName }}
 
-- job: BuildApplicationJob
-  displayName: Build Application
+- job: Build${{ parameters.environmentName }}Function
+  displayName: Build ${{ parameters.environmentName }} Function
 
   variables:
     - group: ${{ parameters.variableGroupName }}
@@ -29,6 +27,8 @@ jobs:
       echo "System.DefaultWorkingDirectory=$(System.DefaultWorkingDirectory)"
       echo "Build.BuildId=$(Build.BuildId)"
       echo "appPrefix=$(appPrefix)"
+      tree $(System.DefaultWorkingDirectory)
+      dir $(System.DefaultWorkingDirectory) /s
     continueOnError: true
     displayName: 'Display Variables'
 

@@ -22,22 +22,12 @@
 #   az devops configure --defaults project='yourProjectName'
 #   az pipelines variable-group create --name CodeSigning --variables SubscriptionName=<serviceConnectionName> KeyVaultUrl=https://<yourCertVaultName>.vault.azure.net/ CertName=<certName> SigningAppRegAppId=<appId> SigningAppRegClientSecret=<clientSecret> ActiveDirectoryTenantId=<tenantId> TimestampUrl=: http://timestamp.digicert.com
 # ------------------------------------------------------------------------------------------------------------------------
-trigger:
-  branches:
-    include: 
-      - master
-  paths:
-    include:
-      - Simulator
-    exclude: 
-      - '**/*.yml'
-      - '**/*.yaml'
-      - '**/*.bicep'
-
-pool:
-  vmImage: 'windows-latest'
-
-name: $(date:yyyy).$(date:MM).$(date:dd)$(rev:.r)
+parameters:
+- name: environments
+  type: object
+  default: ['DEV'] # or ['DEV','QA'] or ['DEV','QA','PROD'] or ['DEV','QA','STG','PROD']
+- name: variableGroupName
+  default: 'myVariableGroupName'
 
 variables:
   - name: solution

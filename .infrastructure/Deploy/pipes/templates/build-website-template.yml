@@ -6,23 +6,28 @@ parameters:
   default:  'myVariableGroup'
 - name: environmentName
   default:  'DEV'
-- name: runDateTime
-  default:  '12-31-2020 23:59:59'
+- name: folderName
+  default: ''
+- name: projectName
+  default: ''
+
 # ------------------------------------------------------------------------------------------------------------------------
 jobs:
-- deployment: BuildApplication
-  displayName: Initialize Build App
+- deployment: Build${{ parameters.environmentName }}Website
+  displayName: Initialize ${{ parameters.environmentName }}Build Website
   environment: ${{ parameters.environmentName }}
 
-- job: BuildApplicationJob
-  displayName: Build Application
+- job: Build${{ parameters.environmentName }}Website
+  displayName: Build ${{ parameters.environmentName }} Website
 
   variables:
     - group: ${{ parameters.variableGroupName }}
+    - name: folderName
+      value: '${{ parameters.folderName }}'
     - name: projectName
-      value: 'IoT.Dashboard'
+      value: '${{ parameters.projectName }}'
     - name: solution
-      value: 'IoT.Dashboard.sln'
+      value: '${{ parameters.projectName }}.sln'
     - name: buildPlatform
       value: 'Any CPU'
     - name: buildConfiguration
@@ -30,14 +35,22 @@ jobs:
     - name: appVersion
       value: $(Build.BuildNumber)
     - name: rootDirectory
-      value: '$(System.DefaultWorkingDirectory)/Dashboard'
+      value: '$(System.DefaultWorkingDirectory)/$(folderName)'
     - name: workingDirectory
-      value: '$(System.DefaultWorkingDirectory)/Dashboard/IoT.Dashboard'
+      value: '$(System.DefaultWorkingDirectory)/$(folderName)/$(projectName)'
 
   steps:
+  - bash: |
+      runDateTime=$(echo $(date '+%Y%m%d-%H%M%S'))
+      echo "##vso[task.setvariable variable=runDateTime]$runDateTime"
+      echo "runDateTime=$runDateTime"
+    displayName: 'Create Variables'
+    continueOnError: true
+
   - task: CmdLine@2
     inputs:
       script: |
+        echo "runDateTime=$(runDateTime)"
         echo "solution=$(solution)"
         echo "rootDirectory=$(rootDirectory)"
         echo "workingDirectory=$(workingDirectory)"
@@ -52,6 +65,7 @@ jobs:
         echo "appPrefix=$(appPrefix)"
         echo "Directory of System.DefaultWorkingDirectory:"
         tree $(System.DefaultWorkingDirectory)
+        dir $(System.DefaultWorkingDirectory) /s
     displayName: 'Display Variables'
 
   - task: NuGetToolInstaller@1
@@ -59,11 +73,11 @@ jobs:
   - task: NuGetCommand@2
     inputs:
       command: 'restore'
-      restoreSolution: '$(rootDirectory)/$(solution)'
+      restoreSolution: '$(rootDirectory)\$(solution)'
     continueOnError: true
 
   - script: |
-      echo -e -n "{\"buildNumber\":\"$(Build.BuildNumber)\",\"buildId\":\"$(Build.BuildId)\",\"branchName\":\"$(Build.SourceBranchName)\",\"commitHash\":\"$(Build.SourceVersion)\"}" > "$(workingDirectory)/buildinfo.json"
+      echo -e -n "{\"buildDate\":\"$(runDateTime)\",\"buildNumber\":\"$(Build.BuildNumber)\",\"buildId\":\"$(Build.BuildId)\",\"branchName\":\"$(Build.SourceBranchName)\",\"commitHash\":\"$(Build.SourceVersion)\"}" > "$(rootDirectory)\buildinfo.json"
     displayName: "Put Build Details in buildinfo.json"
     continueOnError: true
   
@@ -71,7 +85,7 @@ jobs:
     displayName: 'Update Assembly Version'
     inputs:
       Path: '$(Build.SourcesDirectory)'
-      FileNames: '$(workingDirectory)/*.csproj'
+      FileNames: '$(rootDirectory)\*.csproj'
       InsertAttributes: true
       FileEncoding: 'auto'
       WriteBOM: true
@@ -84,7 +98,7 @@ jobs:
   - task: VSBuild@1
     displayName: 'Build Application'
     inputs:
-      solution: '$(rootDirectory)/$(solution)'
+      solution: '$(rootDirectory)\$(solution)'
       msbuildArgs: '/p:DeployOnBuild=true /p:WebPublishMethod=Package /p:SkipInvalidConfigurations=true'
       platform: '$(buildPlatform)'
       configuration: '$(buildConfiguration)'
@@ -97,32 +111,24 @@ jobs:
       configuration: '$(buildConfiguration)'
       
   - task: DotNetCoreCLI@2
-    displayName: "Publish Artifacts"
+    displayName: "DotNet Publish Artifacts"
     inputs:
       command: 'publish'
-      projects: '$(rootDirectory)/$(solution)'
+      projects: '$(rootDirectory)\$(solution)'
       publishWebProjects: true
-      arguments:   --self-contained false --output $(System.DefaultWorkingDirectory)/website_output
+      arguments:   --self-contained false --output $(System.DefaultWorkingDirectory)\website_output
 
   - task: ArchiveFiles@2
     displayName: 'Zip Output'
     inputs:
-      rootFolderOrFile: '$(System.DefaultWorkingDirectory)/website_output'
+      rootFolderOrFile: '$(System.DefaultWorkingDirectory)\website_output'
       includeRootFolder: false
       archiveType: zip
-      archiveFile: $(Build.ArtifactStagingDirectory)/website-$(appPrefix)$(Build.BuildId).zip
+      archiveFile: $(Build.ArtifactStagingDirectory)\website-$(appPrefix)$(Build.BuildId).zip
       replaceExistingArchive: true
 
-
-  # - task: PublishPipelineArtifact@1
-  #   displayName: 'Publish Artifact'
-  #   inputs:
-  #     targetPath: '$(System.DefaultWorkingDirectory)/website_output'
-  #     artifact: website
-  #     publishLocation: 'pipeline'
-
   - task: PublishPipelineArtifact@1
-    displayName: 'Publish Artifact'
+    displayName: 'Publish Pipeline Artifacts'
     inputs:
       targetPath: '$(Build.ArtifactStagingDirectory)'
       artifact: websitedrop
@@ -134,4 +140,3 @@ jobs:
         tree $(System.DefaultWorkingDirectory)
         tree $(Build.ArtifactStagingDirectory)
     displayName: 'Display Directory Tree'
-

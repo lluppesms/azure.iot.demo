@@ -6,13 +6,11 @@ parameters:
   default:  'myVariableGroup'
 - name: environmentName
   default:  'DEV'
-- name: runDateTime
-  default:  '12-31-2020 23:59:59'
 
 # ----------------------------------------------------------------------------------------------------
 jobs:
-- deployment: DeployApplication
-  displayName: Initialize Deploy App
+- deployment: Deploy${{ parameters.environmentName }}Function
+  displayName: Initialize ${{ parameters.environmentName }} Deploy Function
   environment: ${{ parameters.environmentName }}
 
 - job: DeployApplicationJob
@@ -30,16 +28,21 @@ jobs:
     inputs:
       artifact: functiondrop
 
+  - bash: |
+      functionAppName=$(echo "$(orgPrefix)-$(appPrefix)-$(functionName)-$(environmentNameLower)$(appSuffix)" | tr '[:upper:]' '[:lower:]')
+      echo "##vso[task.setvariable variable=functionAppName]$functionAppName"
+    displayName: 'Create Variables'
+
   - task: CmdLine@2
     inputs:
       script: |
         echo "serviceConnectionName=$(serviceConnectionName)"
         echo "environmentNameUpper=$(environmentNameUpper)"
         echo "environmentNameLower=$(environmentNameLower)"
-        echo "resourceGroupName=$(resourceGroupName)"
         echo "functionAppName=$(functionAppName)"
         echo "Directory of pipeline workspace:"
         tree $(Pipeline.Workspace)
+        dir $(Pipeline.Workspace) /s
     displayName: 'Display Variables and Tree'
 
   - task: AzureFunctionApp@1

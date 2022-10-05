@@ -1,0 +1,32 @@
+# ------------------------------------------------------------------------------------------------------------------------
+# Pipeline to deploy IoT Function App Processor for the IoT Demo Project
+# ------------------------------------------------------------------------------------------------------------------------
+# Note: This pipeline needs a variable group "IoTDemo"
+#  See ../Docs/Create-Variable-Group.md for details
+# ------------------------------------------------------------------------------------------------------------------------
+parameters:
+- name: environments
+  type: object
+  default: ['DEV'] # or ['DEV','QA'] or ['DEV','QA','PROD'] or ['DEV','QA','STG','PROD']
+- name: variableGroupName
+  default: 'myVariableGroupName'
+
+# ------------------------------------------------------------------------------------------------------------------------
+stages:
+- stage: BuildFunction
+  displayName: Build Function
+  jobs:
+  - template: templates/build-function-template.yml.yml
+    parameters:
+      variableGroupName: ${{ parameters.variableGroupName }}
+      environmentName: 'DEV'
+
+# ----------------------------------------------------------------------------------------------------
+- ${{ each environmentName in parameters.environments }} :
+  - stage: DeployFunction${{ environmentName }}
+    displayName: Deploy ${{ environmentName }} Function
+    jobs:
+    - template: templates/deploy-function-template.yml
+      parameters:
+        variableGroupName: ${{ parameters.variableGroupName }}
+        environmentName: ${{ environmentName }}

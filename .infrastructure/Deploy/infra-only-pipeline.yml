@@ -1,0 +1,24 @@
+# ------------------------------------------------------------------------------------------------------------------------
+# Pipeline to deploy Azure Resources Only
+# ------------------------------------------------------------------------------------------------------------------------
+# Note: This pipeline needs a variable group "IoTDemo"
+#  See ../Docs/Create-Variable-Group.md for details
+# ------------------------------------------------------------------------------------------------------------------------
+name: $(date:yyyy).$(date:MM).$(date:dd)$(rev:.r)
+pool:
+  vmImage: ubuntu-latest
+
+# ------------------------------------------------------------------------------------------------------------------------
+trigger:
+  paths:
+    include: 
+      - '**/*.yml'
+      - '**/*.yaml'
+      - '**/*.bicep'
+
+# ----------------------------------------------------------------------------------------------------
+stages:
+- template: pipes/infra-only-pipeline-template.yml
+  parameters:
+    variableGroupName: 'IoTDemo'
+    environments: ['DEV','PROD']  # ['DEV'] or ['DEV','QA'] or ['DEV','QA','PROD']
