@@ -15,12 +15,12 @@ parameters:
 
 # ----------------------------------------------------------------------------------------------------
 jobs:
-- deployment: CreateInfra
-  displayName: Initialize Create Infra
+- deployment: Create${{ parameters.environmentName }}Infra
+  displayName: Initialize Create ${{ parameters.environmentName }} Infra
   environment: ${{ parameters.environmentName }}
 
-- job: CreateInfraJob
-  displayName: Create Infrastructure
+- job: Create${{ parameters.environmentName }}InfraJob
+  displayName: Create ${{ parameters.environmentName }} Infrastructure
   variables:
     - group: ${{ parameters.variableGroupName }}
     - name: environmentNameUpper
@@ -50,9 +50,9 @@ jobs:
     displayName: 'Create Variables'
 
   - bash: |
-      echo "serviceConnectionName=$(serviceConnectionName)"
       echo "subscriptionId=$(subscriptionId)"
       echo "resourceGroupName=$(resourceGroupName)"
+      echo "serviceConnectionName=$(serviceConnectionName)"
       echo "environmentNameUpper=$(environmentNameUpper)"
       echo "environmentNameLower=$(environmentNameLower)"
       echo "location=$(location)"
@@ -85,7 +85,7 @@ jobs:
   - task: AzureCLI@2
     displayName: 'Create Resource Group'
     inputs:
-      azureSubscription: $(azureSubscription)
+      azureSubscription: $(serviceConnectionName)
       scriptType: bash
       scriptLocation: inlineScript
       inlineScript: az group create --name $(resourceGroupName) --location $(region)

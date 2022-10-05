@@ -19,14 +19,6 @@ These commands actually create the variable groups:
   az devops configure --defaults organization=https://dev.azure.com/<yourAzDOOrg>/ 
   az devops configure --defaults project='<yourAzDOProject>' 
 
-  REMOVED:
-        environmentCode='dev' 
-        resourceGroupName='rg_iotdemo_dev'
-        bicepDirectory='.infrastructure/Bicep/' 
-        bicepFileName='main.bicep'
-        functionAppName='<yourInitials>-iotdemo-process-dev' 
-        webAppName=<yourInitials>-iotdemo-dashboard-dev
-
   az pipelines variable-group create 
     --organization=https://dev.azure.com/<yourAzDOOrg>/ 
     --project='<yourAzDOProject>' 
