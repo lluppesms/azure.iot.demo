@@ -8,25 +8,27 @@ parameters:
 - name: variableGroupName
   default: 'myVariableGroupName'
 
-variables:
-  - name: solution
-    value: 'Simulator/*.sln'
-  - name: buildPlatform
-    value: 'Any CPU'
-  - name: exeName
-    value: IoT.Simulator
-  - name: buildConfiguration
-    value: 'Release'
-
-  - name: storageFolderDev
-    value: 'downloadsdev'
-  - name: storageFolderQA
-    value: 'downloadsqa'
-
-  - group: CodeSigning
-
+# ------------------------------------------------------------------------------------------------------------------------
 jobs:
 - job: BuildSimulator
+
+  variables:
+    - name: solution
+      value: 'Simulator/*.sln'
+    - name: buildPlatform
+      value: 'Any CPU'
+    - name: exeName
+      value: IoT.Simulator
+    - name: buildConfiguration
+      value: 'Release'
+
+    - name: storageFolderDev
+      value: 'downloadsdev'
+    - name: storageFolderQA
+      value: 'downloadsqa'
+
+    - group: CodeSigning
+
   steps:
   - task: NuGetToolInstaller@1
 
