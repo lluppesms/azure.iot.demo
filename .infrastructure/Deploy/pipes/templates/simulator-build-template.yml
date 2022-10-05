@@ -2,11 +2,10 @@
 # Pipeline to build IoT Simulator; compiles for both Windows (x64) and Linux; copies EXE to storage for downloading ease
 # ------------------------------------------------------------------------------------------------------------------------
 parameters:
-- name: environments
-  type: object
-  default: ['DEV'] # or ['DEV','QA'] or ['DEV','QA','PROD'] or ['DEV','QA','STG','PROD']
 - name: variableGroupName
   default: 'myVariableGroupName'
+- name: environmentName
+  default:  'DEV'
 
 # ------------------------------------------------------------------------------------------------------------------------
 jobs:
