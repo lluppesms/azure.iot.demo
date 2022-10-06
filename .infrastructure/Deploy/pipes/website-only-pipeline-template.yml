@@ -4,7 +4,7 @@
 parameters:
 - name: environments
   type: object
-  default: ['DEV'] # or ['DEV','QA'] or ['DEV','QA','PROD'] or ['DEV','QA','STG','PROD']
+  default: ['DEV']
 - name: variableGroupName
   default: 'myVariableGroupName'
 - name: folderName
