@@ -24,4 +24,4 @@ stages:
 - template: pipes/infra-only-pipeline-template.yml
   parameters:
     variableGroupName: 'IoTDemo'
-    environments: ['DEV','PROD']  # ['DEV'] or ['DEV','QA'] or ['DEV','QA','PROD']
+    environments: ['DEV']  # ['DEV','PROD'] ['DEV','QA'] or ['DEV','QA','PROD']
