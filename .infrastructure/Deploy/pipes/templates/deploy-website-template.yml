@@ -76,6 +76,6 @@ jobs:
       azureSubscription: '$(serviceConnectionName)'
       appType: webAppLinux
       WebAppName: $(appName)
-      Package: "$(Build.ArtifactStagingDirectory)/../website-$(appPrefix)*.zip"
+      Package: "$(Build.ArtifactStagingDirectory)/../$(projectName).zip"
       enableCustomDeployment: true
       deploymentMethod: zipDeployment

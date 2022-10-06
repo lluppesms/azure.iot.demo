@@ -111,26 +111,18 @@ jobs:
       configuration: '$(buildConfiguration)'
       
   - task: DotNetCoreCLI@2
-    displayName: "DotNet Publish Artifacts"
+    displayName: "DotNet Publish"
     inputs:
       command: 'publish'
       projects: '$(rootDirectory)\$(solution)'
       publishWebProjects: true
+      zipAfterPublish: true
       arguments:   --self-contained false --output $(System.DefaultWorkingDirectory)\website_output
 
-  - task: ArchiveFiles@2
-    displayName: 'Zip Output'
-    inputs:
-      rootFolderOrFile: '$(System.DefaultWorkingDirectory)\website_output'
-      includeRootFolder: false
-      archiveType: zip
-      archiveFile: $(Build.ArtifactStagingDirectory)\website-$(appPrefix)$(Build.BuildId).zip
-      replaceExistingArchive: true
-
   - task: PublishPipelineArtifact@1
-    displayName: 'Publish Pipeline Artifacts'
+    displayName: 'Publish Artifacts'
     inputs:
-      targetPath: '$(Build.ArtifactStagingDirectory)'
+      targetPath: $(System.DefaultWorkingDirectory)\website_output
       artifact: websitedrop
       publishLocation: 'pipeline'
 
