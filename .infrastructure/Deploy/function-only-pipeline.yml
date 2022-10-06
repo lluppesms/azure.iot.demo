@@ -12,7 +12,7 @@ pool:
 trigger:
   branches:
     include: 
-      - master
+      - main
   paths:
     include:
       - FunctionApp
