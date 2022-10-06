@@ -72,13 +72,8 @@ jobs:
     continueOnError: true
 
   # Login is needed if you are pulling Bicep files from an Azure Container Registry
-  # - task: PowerShell@2
+  # -script: az login --service-principal -u $(principalId) -p $(clientSecret) --tenant $(tenantId)
   #   displayName: 'az login'
-  #   inputs:
-  #     targetType: 'inline'
-  #     script: |
-  #       Write-Host 'Running: az login --service-principal -u $(principalId) -p *** --tenant $(tenantId)'
-  #       az login --service-principal -u $(principalId) -p $(clientSecret) --tenant $(tenantId)
 
   # - script: az bicep build --file $(templateFile) --outfile $(compiledJsonFile)
   #   displayName: 'Compile Bicep file'
@@ -117,4 +112,3 @@ jobs:
       location: '$(location)'
       templateLocation: 'Linked artifact'
       deploymentMode: 'Incremental'
-      continueOnError: ignoreError
