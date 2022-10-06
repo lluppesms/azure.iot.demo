@@ -13,7 +13,7 @@ stages:
 - stage: BuildSimulator
   displayName: Build Simulator
   jobs:
-  - template: templates/simulator-build-template.yml
+  - template: templates/console-app-build-template.yml
     parameters:
       variableGroupName: ${{ parameters.variableGroupName }}
       environmentName: 'DEV'
@@ -23,7 +23,7 @@ stages:
   - stage: DeploySimulator${{ environmentName }}
     displayName: Deploy ${{ environmentName }} Simulator
     jobs:
-    - template: templates/simulator-publish-template.yml
+    - template: templates/console-app-deploy-template.yml
       parameters:
         variableGroupName: ${{ parameters.variableGroupName }}
         environmentName: ${{ environmentName }}

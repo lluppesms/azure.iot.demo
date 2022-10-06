@@ -12,6 +12,7 @@ jobs:
 - job: BuildSimulator
 
   variables:
+    - group: CodeSigning
     - name: solution
       value: 'Simulator/*.sln'
     - name: buildPlatform
@@ -20,13 +21,6 @@ jobs:
       value: IoT.Simulator
     - name: buildConfiguration
       value: 'Release'
-
-    - name: storageFolderDev
-      value: 'downloadsdev'
-    - name: storageFolderQA
-      value: 'downloadsqa'
-
-    - group: CodeSigning
 
   steps:
   - task: NuGetToolInstaller@1
@@ -50,11 +44,11 @@ jobs:
       platform: '$(buildPlatform)'
       configuration: '$(buildConfiguration)'
 
-  - task: VSTest@2
-    displayName: 'Test Program'
-    inputs:
-      platform: '$(buildPlatform)'
-      configuration: '$(buildConfiguration)'
+  # - task: VSTest@2
+  #   displayName: 'Test Program'
+  #   inputs:
+  #     platform: '$(buildPlatform)'
+  #     configuration: '$(buildConfiguration)'
 
   - task: DotNetCoreCLI@2
     displayName: Create win-x64 package

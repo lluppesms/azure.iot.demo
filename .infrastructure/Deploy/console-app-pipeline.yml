@@ -23,7 +23,7 @@ name: $(date:yyyy).$(date:MM).$(date:dd)$(rev:.r)
 
 # ----------------------------------------------------------------------------------------------------
 stages:
-- template: pipes/simulator-only-pipeline-template.yml
+- template: pipes/console-app-pipeline-template.yml
   parameters:
     variableGroupName: 'IoTDemo'
     environments: ['DEV']  # ['DEV','PROD'] ['DEV','QA'] or ['DEV','QA','PROD']

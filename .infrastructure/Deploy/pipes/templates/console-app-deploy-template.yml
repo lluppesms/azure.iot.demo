@@ -23,7 +23,7 @@ jobs:
     - name: environmentNameLower
       value: ${{ lower(parameters.environmentName) }}
     - name: blobPrefix
-      value: 'IoT-Simulator/'
+      value: ${{ parameters.blobPrefix }}
 
   steps:
   - task: DownloadBuildArtifacts@0
