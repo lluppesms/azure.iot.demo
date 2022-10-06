@@ -3,7 +3,7 @@
 // --------------------------------------------------------------------------------
 param orgPrefix string = 'org'
 param appPrefix string = 'app'
-@allowed([ 'dev', 'qa', 'stg', 'prod' ])
+@allowed(['dev','demo','qa','stg','prod'])
 param environmentCode string = 'dev'
 param appSuffix string = '1'
 param location string = resourceGroup().location
