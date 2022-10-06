@@ -28,4 +28,4 @@ stages:
     folderName: 'Dashboard'
     projectName: 'IoT.Dashboard'
     webAppName: 'Dashboard'
-    environments: ['DEV']  # ['DEV','PROD'] ['DEV','QA'] or ['DEV','QA','PROD']
+    environments: ['DEMO']  # ['DEV','PROD'] ['DEV','QA'] or ['DEV','QA','PROD']
