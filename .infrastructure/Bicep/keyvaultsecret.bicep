@@ -1,7 +1,7 @@
-param keyVaultName string
-param secretName string
+param keyVaultName string = ''
+param secretName string = ''
 @secure()
-param secretValue string
+param secretValue string = ''
 param enabledDate string = utcNow()
 param expirationDate string = dateTimeAdd(utcNow(), 'P10Y')
 param enabled bool = true

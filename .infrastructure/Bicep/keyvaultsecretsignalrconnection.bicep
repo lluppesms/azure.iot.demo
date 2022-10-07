@@ -1,9 +1,9 @@
 // --------------------------------------------------------------------------------
 // This BICEP file will create KeyVault secret for a signalR connection
 // --------------------------------------------------------------------------------
-param keyVaultName string
-param keyName string
-param signalRName string
+param keyVaultName string = ''
+param keyName string = ''
+param signalRName string = ''
 
 // --------------------------------------------------------------------------------
 resource signalRResource 'Microsoft.SignalRService/SignalR@2022-02-01' existing = { name: signalRName }

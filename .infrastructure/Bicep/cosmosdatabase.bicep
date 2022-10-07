@@ -14,7 +14,7 @@ param appSuffix string = '1'
 param location string = resourceGroup().location
 param runDateTime string = utcNow()
 param templateFileName string = '~cosmosDatabase.bicep'
-param containerArray array
+param containerArray array = []
 param cosmosDatabaseName string = 'MyDatabase'
 
 // --------------------------------------------------------------------------------

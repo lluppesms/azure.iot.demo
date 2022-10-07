@@ -12,9 +12,9 @@ param runDateTime string = utcNow()
 param templateFileName string = '~streaming.bicep'
 param sku string = 'F1'
 
-param iotHubName string
-param svcBusName string
-param svcBusQueueName string
+param iotHubName string = ''
+param svcBusName string = ''
+param svcBusQueueName string = ''
 
 // --------------------------------------------------------------------------------
 var saJobName = '${orgPrefix}-${appPrefix}-stream-${environmentCode}${appSuffix}'

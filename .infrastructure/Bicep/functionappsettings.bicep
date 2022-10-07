@@ -4,10 +4,10 @@
 // To deploy this Bicep manually:
 //   az deployment group create -n main-deploy-20220820T140100Z --resource-group rg_iotdemo_dev --template-file 'functionAppSettings.bicep' --parameters functionAppName='xxx-iotdemo-process-dev' functionStorageAccountName='xxxiotdemofuncdevstore' functionInsightsName='xxx-iotdemo-process-dev-insights' customAppSettings="{'dateTested':'20220820T140100Z'}" 
 // --------------------------------------------------------------------------------
-param functionAppName string
-param functionStorageAccountName string
-param functionInsightsKey string
-param customAppSettings object
+param functionAppName string = ''
+param functionStorageAccountName string = ''
+param functionInsightsKey string = ''
+param customAppSettings object = {}
 
 resource storageAccountResource 'Microsoft.Storage/storageAccounts@2019-06-01' existing = { name: functionStorageAccountName }
 var storageAccountConnectionString = 'DefaultEndpointsProtocol=https;AccountName=${storageAccountResource.name};EndpointSuffix=${environment().suffixes.storage};AccountKey=${listKeys(storageAccountResource.id, storageAccountResource.apiVersion).keys[0].value}'

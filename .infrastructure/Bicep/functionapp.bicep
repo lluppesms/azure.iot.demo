@@ -8,7 +8,7 @@ param orgPrefix string = 'org'
 param appPrefix string = 'app'
 @allowed(['dev','demo','qa','stg','prod'])
 param environmentCode string = 'dev'
-param appSuffix string = '1'
+param appSuffix string = ''
 param location string = resourceGroup().location
 param appInsightsLocation string = resourceGroup().location
 param runDateTime string = utcNow()
@@ -16,11 +16,11 @@ param templateFileName string = '~functionApp.bicep'
 
 param functionName string = 'func'
 @allowed([ 'functionapp', 'functionapp,linux' ])
-param functionKind string
+param functionKind string = 'functionapp'
 param functionAppSku string = 'Y1'
 param functionAppSkuFamily string = 'Y'
 param functionAppSkuTier string = 'Dynamic'
-param functionStorageAccountName string
+param functionStorageAccountName string = ''
 
 // --------------------------------------------------------------------------------
 var functionAppName = toLower('${orgPrefix}-${appPrefix}-${functionName}-${environmentCode}${appSuffix}')

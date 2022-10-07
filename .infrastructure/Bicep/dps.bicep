@@ -16,7 +16,7 @@ param runDateTime string = utcNow()
 param templateFileName string = '~dps.bicep'
 @allowed(['F1','S1','S2','S3'])
 param sku string = 'S1'
-param iotHubName string
+param iotHubName string = ''
 
 // --------------------------------------------------------------------------------
 var dpsName  = '${orgPrefix}-${appPrefix}-dps-${environmentCode}${appSuffix}'

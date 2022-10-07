@@ -1,8 +1,8 @@
 // --------------------------------------------------------------------------------
 // This BICEP file will add unique Configuration settings to a web app
 // --------------------------------------------------------------------------------
-param webAppName string
-param customAppSettings object
+param webAppName string = ''
+param customAppSettings object = {}
 
 // there are no base settings used at this time in the webSite.Bicep, but if there were...
 var BASE_SLOT_APPSETTINGS = {

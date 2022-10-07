@@ -1,9 +1,9 @@
 // --------------------------------------------------------------------------------
 // This BICEP file will create a KeyVault secret for Cosmos
 // --------------------------------------------------------------------------------
-param keyVaultName string
-param keyName string
-param cosmosAccountName string
+param keyVaultName string = ''
+param keyName string = ''
+param cosmosAccountName string = ''
 
 // --------------------------------------------------------------------------------
 resource cosmosResource 'Microsoft.DocumentDB/databaseAccounts@2022-02-15-preview' existing = { name: cosmosAccountName }

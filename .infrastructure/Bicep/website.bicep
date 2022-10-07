@@ -49,11 +49,22 @@ resource webSiteAppServiceResource 'Microsoft.Web/sites@2020-06-01' = {
   identity: {
     type: 'SystemAssigned'
   }
+  tags: {
+    LastDeployed: runDateTime
+    TemplateFile: templateFileName
+    Organization: orgPrefix
+    Application: appPrefix
+    Environment: environmentCode
+  }
   properties: {
     serverFarmId: webSiteAppServicePlanResource.id
+    httpsOnly: true
     siteConfig: {
       linuxFxVersion: linuxFxVersion
       appSettings: []
+      minTlsVersion: '1.2'
+      ftpsState: 'FtpsOnly'
+      remoteDebuggingEnabled: false
     }
   }
 }

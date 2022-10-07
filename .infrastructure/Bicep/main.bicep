@@ -156,7 +156,7 @@ module functionModule 'functionapp.bicep' = {
     functionAppSku: functionAppSku
     functionAppSkuFamily: functionAppSkuFamily
     functionAppSkuTier: functionAppSkuTier
-    functionStorageAccountName: storageModule.outputs.functionStorageAccountName
+    functionStorageAccountName: storageModule.outputs.storageAccountName
     appInsightsLocation: location
 
     templateFileName: 'functionapp.bicep'
