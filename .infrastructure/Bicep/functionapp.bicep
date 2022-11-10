@@ -1,20 +1,14 @@
 // ----------------------------------------------------------------------------------------------------
 // This BICEP file will create an Azure Function
 // ----------------------------------------------------------------------------------------------------
-// To deploy this Bicep manually:
-//   az deployment group create -n main-deploy-20220819T164900Z --resource-group rg_iotdemo_dev --template-file 'functionApp.bicep' --parameters orgPrefix=xxx environmentCode=dev appPrefix=iotdemo functionKind=functionapp functionStorageAccountName=xxxiotdemofuncdevstore
-// ----------------------------------------------------------------------------------------------------
-param orgPrefix string = 'org'
-param appPrefix string = 'app'
-@allowed(['dev','demo','qa','stg','prod'])
-param environmentCode string = 'dev'
-param appSuffix string = ''
+param functionAppName string = 'myfunctionname'
+param functionAppServicePlanName string = 'myfunctionappserviceplanname'
+param functionInsightsName string = 'myfunctioninsightsname'
+
 param location string = resourceGroup().location
 param appInsightsLocation string = resourceGroup().location
-param runDateTime string = utcNow()
-param templateFileName string = '~functionApp.bicep'
+param commonTags object = {}
 
-param functionName string = 'func'
 @allowed([ 'functionapp', 'functionapp,linux' ])
 param functionKind string = 'functionapp'
 param functionAppSku string = 'Y1'
@@ -23,9 +17,8 @@ param functionAppSkuTier string = 'Dynamic'
 param functionStorageAccountName string = ''
 
 // --------------------------------------------------------------------------------
-var functionAppName = toLower('${orgPrefix}-${appPrefix}-${functionName}-${environmentCode}${appSuffix}')
-var appServicePlanName = toLower('${functionAppName}-appsvc')
-var functionInsightsName = toLower('${functionAppName}-insights')
+var templateTag = { TemplateFile: '~functionapp.bicep' }
+var tags = union(commonTags, templateTag)
 
 // --------------------------------------------------------------------------------
 resource storageAccountResource 'Microsoft.Storage/storageAccounts@2019-06-01' existing = { name: functionStorageAccountName }
@@ -35,13 +28,7 @@ resource appInsightsResource 'Microsoft.Insights/components@2020-02-02-preview' 
   name: functionInsightsName
   location: appInsightsLocation
   kind: 'web'
-  tags: {
-    LastDeployed: runDateTime
-    TemplateFile: templateFileName
-    Organization: orgPrefix
-    Application: appPrefix
-    Environment: environmentCode
-  }
+  tags: tags
   properties: {
     Application_Type: 'web'
     Request_Source: 'rest'
@@ -52,16 +39,10 @@ resource appInsightsResource 'Microsoft.Insights/components@2020-02-02-preview' 
 }
 
 resource appServiceResource 'Microsoft.Web/serverfarms@2021-03-01' = {
-  name: appServicePlanName
+  name: functionAppServicePlanName
   location: location
   kind: functionKind
-  tags: {
-    LastDeployed: runDateTime
-    TemplateFile: templateFileName
-    Organization: orgPrefix
-    Application: appPrefix
-    Environment: environmentCode
-  }
+  tags: tags
   sku: {
     name: functionAppSku
     tier: functionAppSkuTier
@@ -85,13 +66,7 @@ resource functionAppResource 'Microsoft.Web/sites@2021-03-01' = {
   name: functionAppName
   location: location
   kind: functionKind
-  tags: {
-    LastDeployed: runDateTime
-    TemplateFile: templateFileName
-    Organization: orgPrefix
-    Application: appPrefix
-    Environment: environmentCode
-  }
+  tags: tags
   identity: {
     type: 'SystemAssigned'
   }
@@ -231,9 +206,9 @@ resource functionAppResource 'Microsoft.Web/sites@2021-03-01' = {
 //     }
 // }
 
-output functionAppPrincipalId string = functionAppResource.identity.principalId
-output functionAppId string = functionAppResource.id
-output functionAppName string = functionAppName
-output functionInsightsName string = functionInsightsName
-output functionInsightsKey string = appInsightsResource.properties.InstrumentationKey
-output functionStorageAccountName string = functionStorageAccountName
+output principalId string = functionAppResource.identity.principalId
+output id string = functionAppResource.id
+output name string = functionAppName
+output insightsName string = functionInsightsName
+output insightsKey string = appInsightsResource.properties.InstrumentationKey
+output storageAccountName string = functionStorageAccountName

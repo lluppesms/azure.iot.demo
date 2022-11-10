@@ -22,3 +22,11 @@ requests
 // and operation_Name =~ 'TriggerFileUpload'
 | order by timestamp desc
 | take 200
+
+
+traces 
+| where message contains 'ImageFileTrigger:'
+//| where operation_Name == "ImageFileTrigger" or operation_Name == "TextFileTrigger"
+//| where severityLevel  > 2
+| order by timestamp desc 
+

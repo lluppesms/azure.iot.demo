@@ -1,23 +1,18 @@
 // --------------------------------------------------------------------------------
 // This BICEP file will create a Stream Analytics Job 
 // --------------------------------------------------------------------------------
-
-param orgPrefix string = 'org'
-param appPrefix string = 'app'
-@allowed(['dev','demo','qa','stg','prod'])
-param environmentCode string = 'dev'
-param appSuffix string = '1'
+param saJobName string = 'mystreamingjobname'
 param location string = resourceGroup().location
-param runDateTime string = utcNow()
-param templateFileName string = '~streaming.bicep'
-param sku string = 'F1'
+param commonTags object = {}
 
+param sku string = 'Standard'
 param iotHubName string = ''
 param svcBusName string = ''
 param svcBusQueueName string = ''
 
 // --------------------------------------------------------------------------------
-var saJobName = '${orgPrefix}-${appPrefix}-stream-${environmentCode}${appSuffix}'
+var templateTag = { TemplateFile: '~streaming.bicep' }
+var tags = union(commonTags, templateTag)
 
 // --------------------------------------------------------------------------------
 resource iotHubResource 'Microsoft.Devices/IotHubs@2021-07-02' existing = { name: iotHubName }
@@ -31,19 +26,13 @@ var svcBusAccessKey = '${listKeys(svcBusAccessKeyEndpoint, svcBusResource.apiVer
 resource saJobResource 'Microsoft.StreamAnalytics/streamingjobs@2021-10-01-preview' = {
   name: saJobName
   location: location
-  tags: {
-    LastDeployed: runDateTime
-    TemplateFile: templateFileName
-    Organization: orgPrefix
-    Application: appPrefix
-    Environment: environmentCode
-  }
+  tags: tags
   identity: {
     type: 'SystemAssigned'
   }
   properties: {
     sku: {
-      name: 'Standard'
+      name: sku
     }
     outputStartMode: 'CustomTime'
     outputStartTime: '2022-06-20T18:37:42Z'
@@ -119,4 +108,5 @@ resource saJobResource 'Microsoft.StreamAnalytics/streamingjobs@2021-10-01-previ
   }
 }
 
-output saJobName string = saJobName
+output name string = saJobResource.name
+output id string = saJobResource.id
