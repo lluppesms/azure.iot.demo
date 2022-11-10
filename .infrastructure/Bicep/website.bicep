@@ -1,38 +1,26 @@
 // --------------------------------------------------------------------------------
-// This BICEP file will create a Azure Function
+// This BICEP file will create a Azure Website
 // --------------------------------------------------------------------------------
-
-param orgPrefix string = 'org'
-param appPrefix string = 'app'
-@allowed(['dev','demo','qa','stg','prod'])
-param environmentCode string = 'dev'
-param appSuffix string = '1'
+param webSiteName string = 'myWebSiteName'
+param webSiteAppServicePlanName string = 'myWebSiteAppServicePlanName'
+param webSiteAppInsightsName string = 'myWebSiteAppInsightsName'
 param location string = resourceGroup().location
+param commonTags object = {}
+
 param appInsightsLocation string = resourceGroup().location
-param runDateTime string = utcNow()
-param templateFileName string = '~website.bicep'
 @allowed(['F1','B1','B2','S1','S2','S3'])
 param sku string = 'F1'
-
-param webAppName string = 'dashboard'
-
-// --------------------------------------------------------------------------------
-var linuxFxVersion = 'DOTNETCORE|6.0' // 	The runtime stack of web app
-var webSiteName = toLower('${orgPrefix}-${appPrefix}-${webAppName}-${environmentCode}${appSuffix}')
-var webSiteAppServicePlanName = toLower('${webSiteName}-appsvc')
-var webSiteAppInsightsName = toLower('${webSiteName}-insights')
+param linuxFxVersion string = 'DOTNETCORE|6.0'
 
 // --------------------------------------------------------------------------------
-resource webSiteAppServicePlanResource 'Microsoft.Web/serverfarms@2020-06-01' = {
+var templateTag = { TemplateFile: '~website.bicep' }
+var tags = union(commonTags, templateTag)
+
+// --------------------------------------------------------------------------------
+resource appServiceResource 'Microsoft.Web/serverfarms@2020-06-01' = {
   name: webSiteAppServicePlanName
   location: location
-  tags: {
-    LastDeployed: runDateTime
-    TemplateFile: templateFileName
-    Organization: orgPrefix
-    Application: appPrefix
-    Environment: environmentCode
-  }
+  tags: tags
   sku: {
     name: sku
   }
@@ -42,22 +30,16 @@ resource webSiteAppServicePlanResource 'Microsoft.Web/serverfarms@2020-06-01' = 
   }
 }
 
-resource webSiteAppServiceResource 'Microsoft.Web/sites@2020-06-01' = {
+resource webSiteResource 'Microsoft.Web/sites@2020-06-01' = {
   name: webSiteName
   location: location
   kind: 'app'
   identity: {
     type: 'SystemAssigned'
   }
-  tags: {
-    LastDeployed: runDateTime
-    TemplateFile: templateFileName
-    Organization: orgPrefix
-    Application: appPrefix
-    Environment: environmentCode
-  }
+  tags: tags
   properties: {
-    serverFarmId: webSiteAppServicePlanResource.id
+    serverFarmId: appServiceResource.id
     httpsOnly: true
     siteConfig: {
       linuxFxVersion: linuxFxVersion
@@ -69,16 +51,10 @@ resource webSiteAppServiceResource 'Microsoft.Web/sites@2020-06-01' = {
   }
 }
 
-resource webSiteAppInsightsResource 'Microsoft.Insights/components@2020-02-02' = {
+resource appInsightsResource 'Microsoft.Insights/components@2020-02-02' = {
   name: webSiteAppInsightsName
   location: appInsightsLocation
-  tags: {
-    LastDeployed: runDateTime
-    TemplateFile: templateFileName
-    Organization: orgPrefix
-    Application: appPrefix
-    Environment: environmentCode
-  }
+  tags: tags
   kind: 'web'
   properties: {
     Application_Type: 'web'
@@ -86,7 +62,7 @@ resource webSiteAppInsightsResource 'Microsoft.Insights/components@2020-02-02' =
   }
 }
 
-output websiteAppPrincipalId string = webSiteAppServiceResource.identity.principalId
-output webSiteName string = webSiteName
-output webSiteAppInsightsName string = webSiteAppInsightsName
-output webSiteAppInsightsKey string = webSiteAppInsightsResource.properties.InstrumentationKey
+output principalId string = webSiteResource.identity.principalId
+output name string = webSiteResource.name
+output insightsName string = webSiteAppInsightsName
+output insightsKey string = appInsightsResource.properties.InstrumentationKey

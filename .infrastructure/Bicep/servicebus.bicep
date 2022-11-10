@@ -1,31 +1,21 @@
 // --------------------------------------------------------------------------------
 // This BICEP file will create a Service Bus
 // --------------------------------------------------------------------------------
-param orgPrefix string = 'org'
-param appPrefix string = 'app'
-@allowed(['dev','demo','qa','stg','prod'])
-param environmentCode string = 'dev'
-param appSuffix string = '1'
+param serviceBusName string = 'myservicebusname'
 param location string = resourceGroup().location
-param runDateTime string = utcNow()
-param templateFileName string = '~serviceBus.bicep'
+param commonTags object = {}
 
 param queueNames array = ['queue1Name', 'queue2Name']
 
 // --------------------------------------------------------------------------------
-var serviceBusName = '${orgPrefix}-${appPrefix}-svcbus-${environmentCode}${appSuffix}'
+var templateTag = { TemplateFile: '~serviceBus.bicep' }
+var tags = union(commonTags, templateTag)
 
 // --------------------------------------------------------------------------------
 resource svcBusResource 'Microsoft.ServiceBus/namespaces@2022-01-01-preview' = {
   name: serviceBusName
   location: location
-  tags: {
-    LastDeployed: runDateTime
-    TemplateFile: templateFileName
-    Organization: orgPrefix
-    Application: appPrefix
-    Environment: environmentCode
-  }
+  tags: tags
   sku: {
     name: 'Basic'
     tier: 'Basic'
@@ -72,7 +62,7 @@ resource svcBusQueueResource 'Microsoft.ServiceBus/namespaces/queues@2022-01-01-
 
 // --------------------------------------------------------------------------------
 var serviceBusEndpoint = '${svcBusResource.id}/AuthorizationRules/RootManageSharedAccessKey' 
-output serviceBusName string = svcBusResource.name
-output serviceBusId string = svcBusResource.id
-output serviceBusApiVersion string = svcBusResource.apiVersion
-output serviceBusEndpoint string = serviceBusEndpoint
+output name string = svcBusResource.name
+output id string = svcBusResource.id
+output apiVersion string = svcBusResource.apiVersion
+output endpoint string = serviceBusEndpoint

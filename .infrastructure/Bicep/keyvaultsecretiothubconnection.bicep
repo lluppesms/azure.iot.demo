@@ -1,9 +1,11 @@
 // --------------------------------------------------------------------------------
 // This BICEP file will create KeyVault secret for an IoT Hub Connection
 // --------------------------------------------------------------------------------
-param keyVaultName string = ''
-param keyName string = ''
-param iotHubName string = ''
+param keyVaultName string = 'mykeyvaultname'
+param keyName string = 'mykeyname'
+param iotHubName string = 'myiothubname'
+param enabledDate string = utcNow()
+param expirationDate string = dateTimeAdd(utcNow(), 'P10Y')
 
 // --------------------------------------------------------------------------------
 resource iotHubResource 'Microsoft.Devices/IotHubs@2021-07-02' existing = { name: iotHubName }
@@ -16,6 +18,10 @@ resource keyvaultResource 'Microsoft.KeyVault/vaults@2021-11-01-preview' existin
     name: keyName
     properties: {
       value: iotHubConnectionString
+      attributes: {
+        exp: dateTimeToEpoch(expirationDate)
+        nbf: dateTimeToEpoch(enabledDate)
+      }
     }
   }
 }

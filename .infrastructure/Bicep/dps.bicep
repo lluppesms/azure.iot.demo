@@ -5,23 +5,19 @@
 //   After DPS is created, you will need to manually create a group based on
 //   the certificate that is created.
 // --------------------------------------------------------------------------------
-
-param orgPrefix string = 'org'
-param appPrefix string = 'app'
-@allowed(['dev','demo','qa','stg','prod'])
-param environmentCode string = 'dev'
-param appSuffix string = '1'
+param dpsName string = 'myDpsName'
+param iotHubName string = 'myIoTHubName'
 param location string = resourceGroup().location
-param runDateTime string = utcNow()
-param templateFileName string = '~dps.bicep'
+param commonTags object = {}
+
 @allowed(['F1','S1','S2','S3'])
 param sku string = 'S1'
-param iotHubName string = ''
 
 // --------------------------------------------------------------------------------
-var dpsName  = '${orgPrefix}-${appPrefix}-dps-${environmentCode}${appSuffix}'
-//var certName = '${orgPrefix}-device-root-cert'
+var templateTag = { TemplateFile: '~dps.bicep' }
+var tags = union(commonTags, templateTag)
 
+// --------------------------------------------------------------------------------
 resource iotHubResource 'Microsoft.Devices/IotHubs@2021-07-02' existing = { name: iotHubName }
 var iotHubConnectionString = 'HostName=${iotHubResource.name}.azure-devices.net;SharedAccessKeyName=iothubowner;SharedAccessKey=${listKeys(iotHubResource.id, iotHubResource.apiVersion).value[0].primaryKey}'
 
@@ -30,14 +26,7 @@ var iotHubConnectionString = 'HostName=${iotHubResource.name}.azure-devices.net;
 resource dpsResource 'Microsoft.Devices/provisioningServices@2022-02-05' = {
   name: dpsName
   location: location
-  tags: {
-    LastDeployed: runDateTime
-    TemplateFile: templateFileName
-    SKU: sku
-    Organization: orgPrefix
-    Application: appPrefix
-    Environment: environmentCode
-  }
+  tags: tags
   sku: {
     name: sku
     capacity: 1
@@ -118,4 +107,5 @@ resource dpsResource 'Microsoft.Devices/provisioningServices@2022-02-05' = {
 // }
 
 // --------------------------------------------------------------------------------
-output dpsName string = dpsName
+output id string = dpsResource.id
+output name string = dpsResource.name
