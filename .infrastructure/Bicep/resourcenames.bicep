@@ -25,10 +25,11 @@ output webSiteName string =                webSiteName
 output webSiteAppServicePlanName string =  '${webSiteName}-appsvc'
 output webSiteAppInsightsName string =     '${webSiteName}-insights'
 
-output iotHubName string =                 toLower('${sanitizedOrgPrefix}-${sanitizedAppPrefix}-hub-${sanitizedEnvironment}${sanitizedAppSuffix}')
-output dpsName string =                    toLower('${sanitizedOrgPrefix}-${sanitizedAppPrefix}-dps-${sanitizedEnvironment}${sanitizedAppSuffix}')
 output cosmosAccountName string =          toLower('${sanitizedOrgPrefix}-${sanitizedAppPrefix}-cosmos-${sanitizedEnvironment}${sanitizedAppSuffix}')
 output serviceBusName string =             toLower('${sanitizedOrgPrefix}-${sanitizedAppPrefix}-svcbus-${sanitizedEnvironment}${sanitizedAppSuffix}')
+
+output iotHubName string =                 toLower('${sanitizedOrgPrefix}-${sanitizedAppPrefix}-hub-${sanitizedEnvironment}${sanitizedAppSuffix}')
+output dpsName string =                    toLower('${sanitizedOrgPrefix}-${sanitizedAppPrefix}-dps-${sanitizedEnvironment}${sanitizedAppSuffix}')
 output signalRName string =                toLower('${sanitizedOrgPrefix}-${sanitizedAppPrefix}-signal-${sanitizedEnvironment}${sanitizedAppSuffix}')
 output saJobName string =                  toLower('${sanitizedOrgPrefix}-${sanitizedAppPrefix}-stream-${sanitizedEnvironment}${sanitizedAppSuffix}')
 

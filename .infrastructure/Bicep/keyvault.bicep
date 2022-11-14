@@ -36,7 +36,6 @@ param useRBAC bool = false
 // param workspaceId string = ''
 
 // --------------------------------------------------------------------------------
-//var keyVaultName = '${orgPrefix}${appPrefix}vault${environmentCode}${appSuffix}'
 var templateTag = { TemplateFile: '~keyVault.bicep' }
 var tags = union(commonTags, templateTag)
 
