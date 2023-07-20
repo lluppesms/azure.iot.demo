@@ -1,0 +1,121 @@
+# ------------------------------------------------------------------------------------------------------------------------
+# Pipeline to build IoT Simulator; compiles for both Windows (x64) and Linux; copies EXE to storage for downloading ease
+# ------------------------------------------------------------------------------------------------------------------------
+parameters:
+- name: variableGroupName
+  default: 'myVariableGroupName'
+- name: environmentName
+  default:  'DEV'
+
+# ------------------------------------------------------------------------------------------------------------------------
+jobs:
+- job: BuildSimulator
+
+  variables:
+    - group: CodeSigning
+    - name: solution
+      value: 'Simulator/*.sln'
+    - name: buildPlatform
+      value: 'Any CPU'
+    - name: exeName
+      value: IoT.Simulator
+    - name: buildConfiguration
+      value: 'Release'
+
+  steps:
+  - task: NuGetToolInstaller@1
+
+  - task: DotNetCoreCLI@2
+    displayName: 'Install AzureSignTool'
+    inputs:
+      command: custom
+      custom: tool
+      arguments: 'install --global azuresigntool'
+    continueOnError: true
+
+  - task: NuGetCommand@2
+    inputs:
+      restoreSolution: '$(solution)'
+
+  - task: VSBuild@1
+    displayName: 'Build Program'
+    inputs:
+      solution: '$(solution)'
+      platform: '$(buildPlatform)'
+      configuration: '$(buildConfiguration)'
+
+  # - task: VSTest@2
+  #   displayName: 'Test Program'
+  #   inputs:
+  #     platform: '$(buildPlatform)'
+  #     configuration: '$(buildConfiguration)'
+
+  - task: DotNetCoreCLI@2
+    displayName: Create win-x64 package
+    inputs:
+      command: publish
+      projects: '$(solution)'
+      packDirectory: 
+      publishWebProjects: false
+      arguments: '--configuration $(BuildConfiguration) /p:PublishSingleFile=true --self-contained -f net6.0 -r win-x64 --output $(build.artifactstagingdirectory)/packages'
+      zipAfterPublish: false
+
+  - task: PowerShell@2
+    displayName: 'Show Directory List'
+    inputs:
+      targetType: 'inline'
+      script: |
+        cd $(build.artifactstagingdirectory)
+        Get-ChildItem -Recurse
+    continueOnError: true
+
+  - task: PowerShell@2
+    displayName: 'Sign win-x64 application'
+    inputs:
+      targetType: 'inline'
+      script: |
+        cd $(build.artifactstagingdirectory)/packages
+        azuresigntool sign Simulator/$(exeName).exe -kvu $(KeyVaultUrl) -kvi $(SigningAppRegAppId) -kvs $(SigningAppRegClientSecret) -kvt $(ActiveDirectoryTenantId) -kvc $(CertName) -tr $(TimestampUrl) -v
+    continueOnError: true
+
+  - task: PowerShell@2
+    displayName: Move win-x64 package to Deploy Folder
+    inputs:
+      targetType: 'inline'
+      script: |
+        cd $(build.artifactstagingdirectory)/packages
+        md Deploy
+        cd Deploy
+        md win-x64
+        cd ..
+        move Simulator/$(exeName).exe $(build.artifactstagingdirectory)/packages/Deploy/win-x64/
+      errorActionPreference: 'continue'
+      failOnStderr: false
+
+  - task: DotNetCoreCLI@2
+    displayName: Create Linux package
+    inputs:
+      command: publish
+      projects: '$(solution)'
+      publishWebProjects: false
+      arguments: '--configuration $(BuildConfiguration) /p:PublishSingleFile=true --self-contained -f net6.0 -r linux-x64 --output $(build.artifactstagingdirectory)/packages'
+      zipAfterPublish: false
+
+  - task: PowerShell@2
+    displayName: Move Linux package to Deploy Folder
+    inputs:
+      targetType: 'inline'
+      script: |
+        cd $(build.artifactstagingdirectory)/packages
+        cd Deploy
+        md Linux
+        cd ..
+        move Simulator/$(exeName) $(build.artifactstagingdirectory)/packages/Deploy/Linux/
+      errorActionPreference: 'continue'
+      failOnStderr: false
+
+  - task: PublishBuildArtifacts@1
+    displayName: 'Publish Deployed Artifacts'
+    inputs:
+      PathtoPublish: '$(Build.ArtifactStagingDirectory)/packages/Deploy'
+      artifact: simulatordrop

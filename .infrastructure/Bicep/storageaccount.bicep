@@ -1,36 +1,27 @@
 ﻿// --------------------------------------------------------------------------------
 // This BICEP file will create storage account
 // --------------------------------------------------------------------------------
-param orgPrefix string = 'org'
-param appPrefix string = 'app'
-@allowed([ 'dev', 'qa', 'stg', 'prod' ])
-param environmentCode string = 'dev'
-param appSuffix string = '1'
+param storageAccountName string = 'mystorageaccountname'
 param location string = resourceGroup().location
-param runDateTime string = utcNow()
-param templateFileName string = '~storageAccount.bicep'
+param commonTags object = {}
 
 @allowed([ 'Standard_LRS', 'Standard_GRS', 'Standard_RAGRS' ])
 param storageSku string = 'Standard_LRS'
+param storageAccessTier string = 'Hot'
 
 // --------------------------------------------------------------------------------
-var functionStorageName = toLower('${orgPrefix}${appPrefix}func${environmentCode}${appSuffix}store')
+var templateTag = { TemplateFile: '~storageAccount.bicep' }
+var tags = union(commonTags, templateTag)
 
 // --------------------------------------------------------------------------------
 resource storageAccountResource 'Microsoft.Storage/storageAccounts@2019-06-01' = {
-    name: functionStorageName
+    name: storageAccountName
     location: location
     sku: {
         name: storageSku
     }
-    tags: {
-        LastDeployed: runDateTime
-        TemplateFile: templateFileName
-        Organization: orgPrefix
-        Application: appPrefix
-        Environment: environmentCode
-    }
-    kind: 'Storage'
+    tags: tags
+    kind: 'StorageV2'
     properties: {
         networkAcls: {
             bypass: 'AzureServices'
@@ -54,6 +45,9 @@ resource storageAccountResource 'Microsoft.Storage/storageAccounts@2019-06-01' =
             }
             keySource: 'Microsoft.Storage'
         }
+        accessTier: storageAccessTier
+        allowBlobPublicAccess: false
+        minimumTlsVersion: 'TLS1_2'
     }
 }
 
@@ -71,4 +65,5 @@ resource blobServiceResource 'Microsoft.Storage/storageAccounts/blobServices@201
     }
 }
 
-output functionStorageAccountName string = storageAccountResource.name
+output id string = storageAccountResource.id
+output name string = storageAccountResource.name

@@ -1,33 +1,23 @@
 // --------------------------------------------------------------------------------
 // This BICEP file will create a SignalR host
 // --------------------------------------------------------------------------------
-param orgPrefix string = 'org'
-param appPrefix string = 'app'
-@allowed(['dev','qa','stg','prod'])
-param environmentCode string = 'dev'
-param appSuffix string = '1'
+param signalRName string = 'mysignalrname'
 param location string = resourceGroup().location
-param runDateTime string = utcNow()
-param templateFileName string = '~signalr.bicep'
-param sku string = 'Free_F1'	 // Required, the name of the SKU. Allowed values: Standard_S1, Free_F1
+param commonTags object = {}
 
+param sku string = 'Free_F1'	 // Required, the name of the SKU. Allowed values: Standard_S1, Free_F1
 param skuTier	string = 'Free'  // Optional tier of this particular SKU. 'Standard' or 'Free' or 'Premium'
 //param skuCapacity int = 1    // Optional, integer. The unit count of the resource. 1 by default. Allowed: Free: 1; Standard: 1,2,5,10,20,50,100
 
 // --------------------------------------------------------------------------------
-var signalRName = '${orgPrefix}-${appPrefix}-signal-${environmentCode}${appSuffix}'
+var templateTag = { TemplateFile: '~signalr.bicep' }
+var tags = union(commonTags, templateTag)
 
 // --------------------------------------------------------------------------------
 resource signalRResource 'Microsoft.SignalRService/SignalR@2022-02-01' = {
   name: signalRName
   location: location
-  tags: {
-    LastDeployed: runDateTime
-    TemplateFile: templateFileName
-    Organization: orgPrefix
-    Application: appPrefix
-    Environment: environmentCode
-  }
+  tags: tags
   sku: {
     name: sku
     tier: skuTier
@@ -78,6 +68,6 @@ resource signalRResource 'Microsoft.SignalRService/SignalR@2022-02-01' = {
 }
 
 // --------------------------------------------------------------------------------
-output signalRName string = signalRResource.name
-output signalRId string = signalRResource.id
-output signalRApiVersion string = signalRResource.apiVersion
+output name string = signalRResource.name
+output id string = signalRResource.id
+output apiVersion string = signalRResource.apiVersion

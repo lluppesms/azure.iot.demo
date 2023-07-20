@@ -1,0 +1,31 @@
+# ------------------------------------------------------------------------------------------------------------------------
+# Pipeline to build and deploy Website Only
+#  See ../Docs/Create-Variable-Group.md for for info about variable group "IoTDemo"
+# ------------------------------------------------------------------------------------------------------------------------
+name: $(date:yyyy).$(date:MM).$(date:dd)$(rev:.r)
+
+trigger:
+  batch: true
+  branches:
+    include:
+    - main
+  paths:
+    include:
+      - Dashboard
+    exclude: 
+      - '**/*.yml'
+      - '**/*.bicep'
+      - '**/*.md'
+
+pool:
+  vmImage: windows-latest
+
+# ----------------------------------------------------------------------------------------------------
+stages:
+- template: pipes/website-only-pipeline-template.yml
+  parameters:
+    variableGroupName: 'IoTDemo'
+    folderName: 'Dashboard'
+    projectName: 'IoT.Dashboard'
+    webAppName: 'Dashboard'
+    environments: ['DEMO']  # ['DEV','PROD'] ['DEV','QA'] or ['DEV','QA','PROD']

@@ -6,23 +6,33 @@ parameters:
   default:  'myVariableGroup'
 - name: environmentName
   default:  'DEV'
-- name: runDateTime
-  default:  '12-31-2020 23:59:59'
+- name: folderName
+  default: ''
+- name: projectName
+  default: ''
+- name: webAppName
+  default: ''
+
 # ------------------------------------------------------------------------------------------------------------------------
 jobs:
-- deployment: DeployApplication
-  displayName: Initialize Deploy App
+- deployment: InitDeploy${{ parameters.environmentName }}Website
+  displayName: Initialize Deploy ${{ parameters.environmentName }} Website
   environment: ${{ parameters.environmentName }}
 
-- job: DeployApplicationJob
-  displayName: Deploy Application
-
+- job: Deploy${{ parameters.environmentName }}Website
+  displayName: Deploy ${{ parameters.environmentName }} Website
   variables:
-    - group: 'IoTDemo-Deploy-WebSite'
+    - group: ${{ parameters.variableGroupName }}
+    - name: environmentNameUpper
+      value: ${{ upper(parameters.environmentName) }}
+    - name: environmentNameLower
+      value: ${{ lower(parameters.environmentName) }}
     - name: projectName
-      value: 'IoT.Dashboard'
+      value: '${{ parameters.projectName }}'
     - name: solution
-      value: 'Dashboard/*.sln'
+      value: '${{ parameters.folderName }}/*.sln'
+    - name: webAppName
+      value: '${{ parameters.webAppName }}'
     - name: buildPlatform
       value: 'Any CPU'
     - name: buildConfiguration
@@ -31,6 +41,11 @@ jobs:
       value: $(Build.BuildNumber)
 
   steps:
+  - bash: |
+      appName=$(echo "$(orgPrefix)-$(appPrefix)-$(webAppName)-$(environmentNameLower)$(appSuffix)" | tr '[:upper:]' '[:lower:]')
+      echo "##vso[task.setvariable variable=appName]$appName"
+    displayName: 'Create Variables'
+
   - task: DownloadPipelineArtifact@2
     displayName: 'Download Pipeline Artifacts'
     inputs:
@@ -42,7 +57,8 @@ jobs:
         echo "serviceConnectionName=$(serviceConnectionName)"
         echo "environmentNameUpper=$(environmentNameUpper)"
         echo "environmentNameLower=$(environmentNameLower)"
-        echo "resourceGroupName=$(resourceGroupName)"
+        echo "appName=$(appName)"
+        echo "webAppName=$(webAppName)"
         echo "projectName=$(projectName)"
         echo "solution=$(solution)"
         echo "buildPlatform=$(buildPlatform)"
@@ -50,14 +66,8 @@ jobs:
         echo "appVersion=$(appVersion)"
         echo "Directory of pipeline workspace:"
         tree $(Pipeline.Workspace)
+        dir $(Pipeline.Workspace) /s
     displayName: 'Display Variables and Tree'
-
-  #- script: |
-  #    echo 'Build.ArtifactStagingDirectory: $(Build.ArtifactStagingDirectory)'
-  #    echo 'System.ArtifactsDirectory: $(System.ArtifactsDirectory)'
-  #    echo 'System.DefaultWorkingDirectory: $(System.DefaultWorkingDirectory)'
-  #  displayName: 'Show Build Folder Paths'
-  #  continueOnError: true
 
   - task: AzureRmWebAppDeployment@4
     displayName: 'Publish App to Azure'
@@ -65,7 +75,7 @@ jobs:
       ConnectionType: AzureRM
       azureSubscription: '$(serviceConnectionName)'
       appType: webAppLinux
-      WebAppName: $(webAppName)
-      Package: "$(Build.ArtifactStagingDirectory)/../website-$(appPrefix)*.zip"
+      WebAppName: $(appName)
+      Package: "$(Build.ArtifactStagingDirectory)/../$(projectName).zip"
       enableCustomDeployment: true
       deploymentMethod: zipDeployment

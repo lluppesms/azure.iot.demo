@@ -5,35 +5,27 @@
 //   After DPS is created, you will need to manually create a group based on
 //   the certificate that is created.
 // --------------------------------------------------------------------------------
-
-param orgPrefix string = 'org'
-param appPrefix string = 'app'
-@allowed(['dev','qa','stg','prod'])
-param environmentCode string = 'dev'
-param appSuffix string = '1'
+param iotHubName string = 'myIoTHubAccountName'
+param iotStorageAccountName string = 'myIotStorageAccountName'
+param iotStorageContainerName string = 'iothubuploads'
 param location string = resourceGroup().location
-param runDateTime string = utcNow()
-param templateFileName string = '~iothub.bicep'
+param commonTags object = {}
 @allowed(['F1','S1','S2','S3'])
 param sku string = 'S1'
 
 // --------------------------------------------------------------------------------
-var iotHubName            = '${orgPrefix}-${appPrefix}-hub-${environmentCode}${appSuffix}'
-var iotStorageAccountName = '${orgPrefix}${appPrefix}stghub${environmentCode}${appSuffix}'
-var iotStorageContainerName = 'iothubuploads'
+// var iotHubName            = '${orgPrefix}-${appPrefix}-hub-${environmentCode}${appSuffix}'
+// var iotStorageAccountName = '${orgPrefix}${appPrefix}stghub${environmentCode}${appSuffix}'
+// var iotStorageContainerName = 'iothubuploads'
+var templateTag = { TemplateFile: '~iothub.bicep' }
+var tags = union(commonTags, templateTag)
 
 // --------------------------------------------------------------------------------
 // create a storage account for the Iot Hub to use
 resource iotStorageAccountResource 'Microsoft.Storage/storageAccounts@2021-04-01' = {
   name: iotStorageAccountName
   location: location
-  tags: {
-    LastDeployed: runDateTime
-    TemplateFile: templateFileName
-    Organization: orgPrefix
-    Application: appPrefix
-    Environment: environmentCode
-  }
+  tags: tags
   sku: {
     name: 'Standard_LRS'
   }
@@ -56,13 +48,7 @@ var iotStorageAccountConnectionString = 'DefaultEndpointsProtocol=https;AccountN
 resource iotHubResource 'Microsoft.Devices/IotHubs@2021-07-02' = {
   name: iotHubName
   location: location
-  tags: {
-    LastDeployed: runDateTime
-    TemplateFile: templateFileName
-    Organization: orgPrefix
-    Application: appPrefix
-    Environment: environmentCode
-  }
+  tags: tags
   sku: {
     name: sku
     capacity: 1
@@ -142,8 +128,8 @@ resource iotHubResource 'Microsoft.Devices/IotHubs@2021-07-02' = {
 }
 
 // --------------------------------------------------------------------------------
-output iotHubName string = iotHubResource.name
-output iotHubNameId string = iotHubResource.id
-output iotHubNameApiVersion string = iotHubResource.apiVersion
-output iotStorageAccountName string = iotStorageAccountName
-output iotStorageContainerName string = iotStorageContainerName
+output name string = iotHubResource.name
+output id string = iotHubResource.id
+output apiVersion string = iotHubResource.apiVersion
+output storageAccountName string = iotStorageAccountName
+output storageContainerName string = iotStorageContainerName

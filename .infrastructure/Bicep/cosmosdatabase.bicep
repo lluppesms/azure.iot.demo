@@ -6,33 +6,22 @@
 //     { name: 'orders',   partitionKey: '/customerNumber' } 
 //   ]
 // --------------------------------------------------------------------------------
-param orgPrefix string = 'org'
-param appPrefix string = 'app'
-@allowed(['dev','qa','stg','prod'])
-param environmentCode string = 'dev'
-param appSuffix string = '1'
+param cosmosAccountName string = 'myCosmosAccountName'
 param location string = resourceGroup().location
-param runDateTime string = utcNow()
-param templateFileName string = '~cosmosDatabase.bicep'
-param containerArray array
+param commonTags object = {}
+
+param containerArray array = []
 param cosmosDatabaseName string = 'MyDatabase'
 
 // --------------------------------------------------------------------------------
-var cosmosAccountName = '${orgPrefix}-${appPrefix}-cosmos-${environmentCode}${appSuffix}'
+var templateTag = { TemplateFile: '~cosmosdatabase.bicep' }
+var tags = union(commonTags, templateTag)
 
 // --------------------------------------------------------------------------------
 resource cosmosAccountResource 'Microsoft.DocumentDB/databaseAccounts@2022-05-15' = {
   name: cosmosAccountName
   location: location
-  tags: {
-    LastDeployed: runDateTime
-    TemplateFile: templateFileName
-    defaultExperience: 'Core (SQL)'
-    CosmosAccountType: 'Non-Production'
-    Organization: orgPrefix
-    Application: appPrefix
-    Environment: environmentCode
-  }
+  tags: tags
   kind: 'GlobalDocumentDB'
   identity: {
     type: 'None'
@@ -128,6 +117,6 @@ resource containerResources 'Microsoft.DocumentDB/databaseAccounts/sqlDatabases/
 }]
 
 // --------------------------------------------------------------------------------
-output cosmosAccountName string = cosmosAccountResource.name
-output cosmosAccountId string = cosmosAccountResource.id
-output cosmosAccountApiVersion string = cosmosAccountResource.apiVersion
+output name string = cosmosAccountResource.name
+output id string = cosmosAccountResource.id
+output apiVersion string = cosmosAccountResource.apiVersion
