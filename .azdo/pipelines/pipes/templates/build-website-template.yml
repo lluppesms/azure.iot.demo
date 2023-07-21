@@ -10,6 +10,8 @@ parameters:
   default: ''
 - name: projectName
   default: ''
+- name: runTests
+  default: 'false'
 
 # ------------------------------------------------------------------------------------------------------------------------
 jobs:
@@ -67,6 +69,7 @@ jobs:
         tree $(System.DefaultWorkingDirectory)
         dir $(System.DefaultWorkingDirectory) /s
     displayName: 'Display Variables'
+    continueOnError: true
 
   - task: NuGetToolInstaller@1
 
@@ -103,12 +106,13 @@ jobs:
       platform: '$(buildPlatform)'
       configuration: '$(buildConfiguration)'
       
-  # - task: VSTest@2
-  #   displayName: 'Test Application'
-  #   inputs:
-  #     searchFolder: '$(rootDirectory)'
-  #     platform: '$(buildPlatform)'
-  #     configuration: '$(buildConfiguration)'
+  - ${{ if eq(lower(parameters.runTests), 'true') }}:
+    - task: VSTest@2
+      displayName: 'Test Application'
+      inputs:
+        searchFolder: '$(rootDirectory)'
+        platform: '$(buildPlatform)'
+        configuration: '$(buildConfiguration)'
       
   - task: DotNetCoreCLI@2
     displayName: "DotNet Publish"
@@ -127,8 +131,9 @@ jobs:
       publishLocation: 'pipeline'
 
   - task: CmdLine@2
+    displayName: 'Display Directory Tree'
     inputs:
       script: |
         tree $(System.DefaultWorkingDirectory)
         tree $(Build.ArtifactStagingDirectory)
-    displayName: 'Display Directory Tree'
+

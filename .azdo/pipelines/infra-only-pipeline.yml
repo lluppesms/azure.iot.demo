@@ -20,8 +20,21 @@ trigger:
       - '**/*.bicep'
 
 # ----------------------------------------------------------------------------------------------------
+parameters:
+  - name: runDevSecOpsScan
+    displayName: Run MS DevSecOps Scan
+    type: boolean
+    default: false
+  - name: runPsRuleScan
+    displayName: Run PSRule Bicep Scan
+    type: boolean
+    default: false
+
+# ----------------------------------------------------------------------------------------------------
 stages:
 - template: pipes/infra-only-pipeline-template.yml
   parameters:
     variableGroupName: 'IoTDemo'
     environments: ['DEMO']  # ['DEV','PROD'] ['DEV','QA'] or ['DEV','QA','PROD']
+    runDevSecOpsScan: ${{ parameters.runDevSecOpsScan }}
+    runPsRuleScan: ${{ parameters.runPsRuleScan }}
