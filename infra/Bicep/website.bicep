@@ -83,8 +83,8 @@ resource appInsightsResource 'Microsoft.Insights/components@2020-02-02' = if (wo
 }
 
 resource diagnosticLogs 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = if (workspaceId != '') {
-  name: appServiceResource.name
-  scope: appServiceResource
+  name: webSiteResource.name // appServiceResource.name
+  scope: webSiteResource     // appServiceResource
   properties: {
     workspaceId: workspaceId
     logs: [

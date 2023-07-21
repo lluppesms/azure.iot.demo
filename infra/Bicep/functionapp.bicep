@@ -225,8 +225,8 @@ resource functionAppResource 'Microsoft.Web/sites@2021-03-01' = {
 // }
 
 resource diagnosticLogs 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = if (workspaceId != '') {
-  name: appServiceResource.name
-  scope: appServiceResource
+  name: functionAppResource.name // appServiceResource.name
+  scope: functionAppResource     // appServiceResource
   properties: {
     workspaceId: workspaceId
     logs: [
