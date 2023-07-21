@@ -47,6 +47,15 @@ module resourceNames 'resourcenames.bicep' = {
 }
 
 // --------------------------------------------------------------------------------
+module logAnalyticsWorkspaceModule 'loganalyticsworkspace.bicep' = {
+  name: 'storage${deploymentSuffix}'
+  params: {
+    logAnalyticsWorkspaceName: resourceNames.outputs.logAnalyticsWorkspaceName
+    location: location
+    commonTags: commonTags
+  }
+}
+
 module storageModule 'storageaccount.bicep' = {
   name: 'storage${deploymentSuffix}'
   params: {

@@ -12,6 +12,9 @@ param appInsightsLocation string = resourceGroup().location
 param sku string = 'F1'
 param linuxFxVersion string = 'DOTNETCORE|6.0'
 
+@description('The workspace to store audit logs.')
+param workspaceId string = ''
+
 // --------------------------------------------------------------------------------
 var templateTag = { TemplateFile: '~website.bicep' }
 var tags = union(commonTags, templateTag)
@@ -52,7 +55,7 @@ resource webSiteResource 'Microsoft.Web/sites@2020-06-01' = {
   }
 }
 
-resource appInsightsResource 'Microsoft.Insights/components@2020-02-02' = {
+resource appInsightsClassicResource 'Microsoft.Insights/components@2020-02-02' = if (workspaceId == '') {
   name: webSiteAppInsightsName
   location: appInsightsLocation
   tags: tags
@@ -60,6 +63,40 @@ resource appInsightsResource 'Microsoft.Insights/components@2020-02-02' = {
   properties: {
     Application_Type: 'web'
     Request_Source: 'rest'
+    publicNetworkAccessForIngestion: 'Enabled'
+    publicNetworkAccessForQuery: 'Enabled'
+  }
+}
+
+resource appInsightsResource 'Microsoft.Insights/components@2020-02-02' = if (workspaceId != '') {
+  name: webSiteAppInsightsName
+  location: appInsightsLocation
+  tags: tags
+  kind: 'web'
+  properties: {
+    Application_Type: 'web'
+    Request_Source: 'rest'
+    publicNetworkAccessForIngestion: 'Enabled'
+    publicNetworkAccessForQuery: 'Enabled'
+    WorkspaceResourceId: workspaceId
+  }
+}
+
+resource diagnosticLogs 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = if (workspaceId != '') {
+  name: appServiceResource.name
+  scope: appServiceResource
+  properties: {
+    workspaceId: workspaceId
+    logs: [
+      {
+        category: 'AllMetrics'
+        enabled: true
+        retentionPolicy: {
+          days: 30
+          enabled: true 
+        }
+      }
+    ]
   }
 }
 

@@ -18,6 +18,8 @@ var  sanitizedAppSuffix = replace(replace(replace(toLower(appSuffix), ' ', ''), 
 var  sanitizedEnvironment = toLower(environment)
 
 // --------------------------------------------------------------------------------
+output logAnalyticsWorkspaceName string =  toLower('${sanitizedOrgPrefix}-${sanitizedAppPrefix}-logworkspace-${sanitizedEnvironment}${sanitizedAppSuffix}')
+
 var functionAppName =                      toLower('${sanitizedOrgPrefix}-${sanitizedAppPrefix}-${functionName}-${sanitizedEnvironment}${sanitizedAppSuffix}')
 output functionAppName string =            functionAppName
 output functionAppServicePlanName string = '${functionAppName}-appsvc'

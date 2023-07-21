@@ -1,6 +1,6 @@
 # ------------------------------------------------------------------------------------------------------------------------
 # Pipeline to build and deploy Website Only
-#  See ../Docs/Create-Variable-Group.md for for info about variable group "IoTDemo"
+#  See ./Docs/Create-Variable-Group.md for for info about variable group "IoTDemo"
 # ------------------------------------------------------------------------------------------------------------------------
 name: $(date:yyyy).$(date:MM).$(date:dd)$(rev:.r)
 

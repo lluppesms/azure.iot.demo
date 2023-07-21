@@ -16,6 +16,9 @@ param functionAppSkuFamily string = 'Y'
 param functionAppSkuTier string = 'Dynamic'
 param functionStorageAccountName string = ''
 
+@description('The workspace to store audit logs.')
+param workspaceId string = ''
+
 // --------------------------------------------------------------------------------
 var templateTag = { TemplateFile: '~functionapp.bicep' }
 var tags = union(commonTags, templateTag)
@@ -24,7 +27,7 @@ var tags = union(commonTags, templateTag)
 resource storageAccountResource 'Microsoft.Storage/storageAccounts@2019-06-01' existing = { name: functionStorageAccountName }
 var functionStorageAccountConnectionString = 'DefaultEndpointsProtocol=https;AccountName=${storageAccountResource.name};EndpointSuffix=${environment().suffixes.storage};AccountKey=${listKeys(storageAccountResource.id, storageAccountResource.apiVersion).keys[0].value}'
 
-resource appInsightsResource 'Microsoft.Insights/components@2020-02-02-preview' = {
+resource appInsightsClassicResource 'Microsoft.Insights/components@2020-02-02-preview' = if (workspaceId == '') {
   name: functionInsightsName
   location: appInsightsLocation
   kind: 'web'
@@ -35,6 +38,21 @@ resource appInsightsResource 'Microsoft.Insights/components@2020-02-02-preview' 
     //RetentionInDays: 90
     publicNetworkAccessForIngestion: 'Enabled'
     publicNetworkAccessForQuery: 'Enabled'
+  }
+}
+
+resource appInsightsResource 'Microsoft.Insights/components@2020-02-02-preview' = if (workspaceId != '') {
+  name: functionInsightsName
+  location: appInsightsLocation
+  kind: 'web'
+  tags: tags
+  properties: {
+    Application_Type: 'web'
+    Request_Source: 'rest'
+    //RetentionInDays: 90
+    publicNetworkAccessForIngestion: 'Enabled'
+    publicNetworkAccessForQuery: 'Enabled'
+    WorkspaceResourceId: workspaceId
   }
 }
 
@@ -205,6 +223,24 @@ resource functionAppResource 'Microsoft.Web/sites@2021-03-01' = {
 //         hostNameType: 'Verified'
 //     }
 // }
+
+resource diagnosticLogs 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = if (workspaceId != '') {
+  name: appServiceResource.name
+  scope: appServiceResource
+  properties: {
+    workspaceId: workspaceId
+    logs: [
+      {
+        category: 'AllMetrics'
+        enabled: true
+        retentionPolicy: {
+          days: 30
+          enabled: true 
+        }
+      }
+    ]
+  }
+}
 
 output principalId string = functionAppResource.identity.principalId
 output id string = functionAppResource.id

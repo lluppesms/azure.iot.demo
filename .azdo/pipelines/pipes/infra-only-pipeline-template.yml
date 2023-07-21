@@ -2,7 +2,7 @@
 # Pipeline Template to deploy Azure Resources Only
 # ------------------------------------------------------------------------------------------------------------------------
 # Note: This pipeline needs a variable group "IoTDemo"
-#  See ../Docs/Create-Variable-Group.md for details
+#  See ./Docs/Create-Variable-Group.md for details
 # ------------------------------------------------------------------------------------------------------------------------
 parameters:
 - name: environments

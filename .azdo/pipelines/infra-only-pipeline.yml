@@ -1,29 +1,27 @@
 # ------------------------------------------------------------------------------------------------------------------------
-# Pipeline to build IoT Simulator; compiles for both Windows (x64) and Linux; copies EXE to storage for downloading ease
+# Pipeline to deploy Azure Resources Only
 # ------------------------------------------------------------------------------------------------------------------------
 # Note: This pipeline needs a variable group "IoTDemo"
-#  See ../Docs/Create-Variable-Group.md for details
+#  See ./Docs/Create-Variable-Group.md for details
+# ------------------------------------------------------------------------------------------------------------------------
+name: $(date:yyyy).$(date:MM).$(date:dd)$(rev:.r)
+pool:
+  vmImage: ubuntu-latest
+
 # ------------------------------------------------------------------------------------------------------------------------
 trigger:
   branches:
     include: 
       - main
   paths:
-    include:
-      - Simulator
-    exclude: 
+    include: 
       - '**/*.yml'
       - '**/*.yaml'
       - '**/*.bicep'
 
-pool:
-  vmImage: 'windows-latest'
-
-name: $(date:yyyy).$(date:MM).$(date:dd)$(rev:.r)
-
 # ----------------------------------------------------------------------------------------------------
 stages:
-- template: pipes/console-app-pipeline-template.yml
+- template: pipes/infra-only-pipeline-template.yml
   parameters:
     variableGroupName: 'IoTDemo'
     environments: ['DEMO']  # ['DEV','PROD'] ['DEV','QA'] or ['DEV','QA','PROD']
