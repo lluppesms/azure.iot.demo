@@ -25,11 +25,10 @@ resource storageAccountResource 'Microsoft.Storage/storageAccounts@2019-06-01' =
     properties: {
         networkAcls: {
             bypass: 'AzureServices'
-            virtualNetworkRules: [
-            ]
-            ipRules: [
-            ]
+            virtualNetworkRules: []
+            ipRules: []
             defaultAction: 'Allow'
+            // defaultAction: 'Deny' - security rules want this, but that makes the app break...!
         }
         supportsHttpsTrafficOnly: true
         encryption: {
@@ -52,7 +51,8 @@ resource storageAccountResource 'Microsoft.Storage/storageAccounts@2019-06-01' =
 }
 
 resource blobServiceResource 'Microsoft.Storage/storageAccounts/blobServices@2019-06-01' = {
-    name: '${storageAccountResource.name}/default'
+    parent: storageAccountResource
+    name: 'default'
     properties: {
         cors: {
             corsRules: [

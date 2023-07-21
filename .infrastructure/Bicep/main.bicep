@@ -1,4 +1,4 @@
-﻿// --------------------------------------------------------------------------------
+// --------------------------------------------------------------------------------
 // Main Bicep file that creates all of the Azure Resources for one environment
 // --------------------------------------------------------------------------------
 // Note: To deploy this Bicep manually:
@@ -40,7 +40,7 @@ module resourceNames 'resourcenames.bicep' = {
     environment: environmentCode
     appSuffix: appSuffix
     webAppName: 'dashboard'
-    functionName: 'func'
+    functionName: 'process'
     functionStorageNameSuffix: 'store'
     iotStorageNameSuffix: 'hub'
   }
@@ -166,9 +166,18 @@ module keyVaultModule 'keyvault.bicep' = {
     keyVaultName: resourceNames.outputs.keyVaultName
     adminUserObjectIds: [ keyVaultOwnerUserId1, keyVaultOwnerUserId2 ]
     applicationUserObjectIds: [ functionModule.outputs.principalId, webSiteModule.outputs.principalId ]
-
     location: location
     commonTags: commonTags
+  }
+}
+
+module keyVaultSecretList 'keyvaultlistsecretnames.bicep' = {
+  name: 'keyVault-Secret-List-Names${deploymentSuffix}'
+  dependsOn: [ keyVaultModule ]
+  params: {
+    keyVaultName: keyVaultModule.outputs.name
+    location: location
+    userManagedIdentityId: keyVaultModule.outputs.userManagedIdentityId
   }
 }
 
@@ -177,8 +186,9 @@ module keyVaultSecret1 'keyvaultsecretiothubconnection.bicep' = {
   dependsOn: [ keyVaultModule, iotHubModule ]
   params: {
     keyVaultName: keyVaultModule.outputs.name
-    keyName: 'iotHubConnectionString'
+    secretName: 'iotHubConnectionString'
     iotHubName: iotHubModule.outputs.name
+    existingSecretNames: keyVaultSecretList.outputs.secretNameList
   }
 }
 
@@ -187,8 +197,9 @@ module keyVaultSecret2 'keyvaultsecretstorageconnection.bicep' = {
   dependsOn: [ keyVaultModule, iotHubModule ]
   params: {
     keyVaultName: keyVaultModule.outputs.name
-    keyName: 'iotStorageAccountConnectionString'
+    secretName: 'iotStorageAccountConnectionString'
     storageAccountName: iotHubModule.outputs.storageAccountName
+    existingSecretNames: keyVaultSecretList.outputs.secretNameList
   }
 }
 
@@ -197,8 +208,9 @@ module keyVaultSecret3 'keyvaultsecretsignalrconnection.bicep' = {
   dependsOn: [ keyVaultModule, signalRModule ]
   params: {
     keyVaultName: keyVaultModule.outputs.name
-    keyName: 'signalRConnectionString'
+    secretName: 'signalRConnectionString'
     signalRName: signalRModule.outputs.name
+    existingSecretNames: keyVaultSecretList.outputs.secretNameList
   }
 }
 
@@ -207,8 +219,9 @@ module keyVaultSecret4 'keyvaultsecretcosmosconnection.bicep' = {
   dependsOn: [ keyVaultModule, cosmosModule ]
   params: {
     keyVaultName: keyVaultModule.outputs.name
-    keyName: 'cosmosConnectionString'
+    secretName: 'cosmosConnectionString'
     cosmosAccountName: cosmosModule.outputs.name
+    existingSecretNames: keyVaultSecretList.outputs.secretNameList
   }
 }
 
@@ -217,8 +230,9 @@ module keyVaultSecret5 'keyvaultsecretservicebusconnection.bicep' = {
   dependsOn: [ keyVaultModule, servicebusModule ]
   params: {
     keyVaultName: keyVaultModule.outputs.name
-    keyName: 'serviceBusConnectionString'
+    secretName: 'serviceBusConnectionString'
     serviceBusName: servicebusModule.outputs.name
+    existingSecretNames: keyVaultSecretList.outputs.secretNameList
   }
 }
 
@@ -229,6 +243,7 @@ module keyVaultSecret6 'keyvaultsecret.bicep' = {
     keyVaultName: keyVaultModule.outputs.name
     secretName: 'functionInsightsKey'
     secretValue: functionModule.outputs.insightsKey
+    existingSecretNames: keyVaultSecretList.outputs.secretNameList
   }
 }
 
@@ -239,6 +254,7 @@ module keyVaultSecret7 'keyvaultsecret.bicep' = {
     keyVaultName: keyVaultModule.outputs.name
     secretName: 'webSiteInsightsKey'
     secretValue: webSiteModule.outputs.insightsKey
+    existingSecretNames: keyVaultSecretList.outputs.secretNameList
   }
 }  
 
