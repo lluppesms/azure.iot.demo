@@ -25,23 +25,10 @@ var tags = union(commonTags, templateTag)
 
 // --------------------------------------------------------------------------------
 resource storageAccountResource 'Microsoft.Storage/storageAccounts@2019-06-01' existing = { name: functionStorageAccountName }
-var functionStorageAccountConnectionString = 'DefaultEndpointsProtocol=https;AccountName=${storageAccountResource.name};EndpointSuffix=${environment().suffixes.storage};AccountKey=${listKeys(storageAccountResource.id, storageAccountResource.apiVersion).keys[0].value}'
+var accountKey = storageAccountResource.listKeys().keys[0].value
+var functionStorageAccountConnectionString = 'DefaultEndpointsProtocol=https;AccountName=${storageAccountResource.name};EndpointSuffix=${environment().suffixes.storage};AccountKey=${accountKey}'
 
-resource appInsightsClassicResource 'Microsoft.Insights/components@2020-02-02-preview' = if (workspaceId == '') {
-  name: functionInsightsName
-  location: appInsightsLocation
-  kind: 'web'
-  tags: tags
-  properties: {
-    Application_Type: 'web'
-    Request_Source: 'rest'
-    //RetentionInDays: 90
-    publicNetworkAccessForIngestion: 'Enabled'
-    publicNetworkAccessForQuery: 'Enabled'
-  }
-}
-
-resource appInsightsResource 'Microsoft.Insights/components@2020-02-02-preview' = if (workspaceId != '') {
+resource appInsightsResource 'Microsoft.Insights/components@2020-02-02-preview' = {
   name: functionInsightsName
   location: appInsightsLocation
   kind: 'web'
@@ -138,98 +125,56 @@ resource functionAppResource 'Microsoft.Web/sites@2021-03-01' = {
   }
 }
 
-// resource functionAppConfig 'Microsoft.Web/sites/config@2018-11-01' = {
-//     name: '${functionAppResource.name}/web'
-//     properties: {
-//         numberOfWorkers: -1
-//         defaultDocuments: [
-//             'Default.htm'
-//             'Default.html'
-//             'Default.asp'
-//             'index.htm'
-//             'index.html'
-//             'iisstart.htm'
-//             'default.aspx'
-//             'index.php'
-//             'hostingstart.html'
-//         ]
-//         netFrameworkVersion: 'v4.0'
-//         linuxFxVersion: 'dotnet|6.0'
-//         requestTracingEnabled: false
-//         remoteDebuggingEnabled: false
-//         httpLoggingEnabled: false
-//         logsDirectorySizeLimit: 35
-//         detailedErrorLoggingEnabled: false
-//         publishingUsername: '$${functionAppName}'
-//         azureStorageAccounts: {            
-//         }
-//         scmType: 'None'
-//         use32BitWorkerProcess: false
-//         webSocketsEnabled: false
-//         alwaysOn: false
-//         managedPipelineMode: 'Integrated'
-//         virtualApplications: [
-//             {
-//                 virtualPath: '/'
-//                 physicalPath: 'site\\wwwroot'
-//                 preloadEnabled: true
-//             }
-//         ]
-//         loadBalancing: 'LeastRequests'
-//         experiments: {
-//             rampUpRules: [                
-//             ]
-//         }
-//         autoHealEnabled: false
-//         cors: {
-//             allowedOrigins: [
-//                 'https://functions.azure.com'
-//                 'https://functions-staging.azure.com'
-//                 'https://functions-next.azure.com'
-//             ]
-//             supportCredentials: false
-//         }
-//         localMySqlEnabled: false
-//         ipSecurityRestrictions: [
-//             {
-//                 ipAddress: 'Any'
-//                 action: 'Allow'
-//                 priority: 1
-//                 name: 'Allow all'
-//                 description: 'Wide open to the world :)'
-//             }
-//         ]
-//         scmIpSecurityRestrictions: [
-//             {
-//                 ipAddress: 'Any'
-//                 action: 'Allow'
-//                 priority: 1
-//                 name: 'Allow all'
-//                 description: 'Wide open to the world :)'
-//             }            
-//         ]
-//         scmIpSecurityRestrictionsUseMain: false
-//         http20Enabled: true
-//         minTlsVersion: '1.2'
-//         ftpsState: 'AllAllowed'
-//         reservedInstanceCount: 0
-//     }
+// can't seem to get this to work right... tried multiple ways...  keep getting this error:
+//    No route registered for '/api/siteextensions/Microsoft.ApplicationInsights.AzureWebSites'.
+// resource functionAppInsightsExtension 'Microsoft.Web/sites/siteextensions@2020-06-01' = {
+//   parent: functionAppResource
+//   name: 'Microsoft.ApplicationInsights.AzureWebSites'
+//   dependsOn: [ appInsightsResource ]
 // }
 
-// resource functionAppBinding 'Microsoft.Web/sites/hostNameBindings@2018-11-01' = {
-//     name: '${functionAppResource.name}/${functionAppResource.name}.azurewebsites.net'
-//     properties: {
-//         siteName: functionAppName
-//         hostNameType: 'Verified'
-//     }
-// }
+resource functionAppMetricLogging 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
+  name: '${functionAppResource.name}-metrics'
+  scope: functionAppResource
+  properties: {
+    workspaceId: workspaceId
+    metrics: [
+      {
+        category: 'AllMetrics'
+        enabled: true
+        retentionPolicy: {
+          days: 30
+          enabled: true 
+        }
+      }
+    ]
+  }
+}
 
-resource diagnosticLogs 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = if (workspaceId != '') {
-  name: functionAppResource.name // appServiceResource.name
-  scope: functionAppResource     // appServiceResource
+// https://learn.microsoft.com/en-us/azure/app-service/troubleshoot-diagnostic-logs
+resource functionAppAuditLogging 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
+  name: '${functionAppResource.name}-logs'
+  scope: functionAppResource
   properties: {
     workspaceId: workspaceId
     logs: [
+      {
+        category: 'FunctionAppLogs'
+        enabled: true
+        retentionPolicy: {
+          days: 30
+          enabled: true 
+        }
+      }
+    ]
+  }
+}
+resource appServiceMetricLogging 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
+  name: '${appServiceResource.name}-metrics'
+  scope: appServiceResource
+  properties: {
+    workspaceId: workspaceId
+    metrics: [
       {
         category: 'AllMetrics'
         enabled: true

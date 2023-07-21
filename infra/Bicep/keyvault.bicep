@@ -145,8 +145,8 @@ resource userAssignedIdentityKeyVaultAccessPolicy 'Microsoft.KeyVault/vaults/acc
   }
 }
 
-resource diagnosticLogs 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = if (workspaceId != '') {
-  name: keyVaultResource.name
+resource keyVaultAuditLogging 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = if (workspaceId != '') {
+  name: '${keyVaultResource.name}-auditlogs'
   scope: keyVaultResource
   properties: {
     workspaceId: workspaceId
@@ -156,6 +156,24 @@ resource diagnosticLogs 'Microsoft.Insights/diagnosticSettings@2021-05-01-previe
         enabled: true
         retentionPolicy: {
           days: 180
+          enabled: true 
+        }
+      }
+    ]
+  }
+}
+
+resource keyVaultMetricLogging 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = if (workspaceId != '') {
+  name: '${keyVaultResource.name}-metrics'
+  scope: keyVaultResource
+  properties: {
+    workspaceId: workspaceId
+    metrics: [
+      {
+        category: 'AllMetrics'
+        enabled: true
+        retentionPolicy: {
+          days: 30
           enabled: true 
         }
       }
