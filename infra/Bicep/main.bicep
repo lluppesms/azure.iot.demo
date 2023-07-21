@@ -179,6 +179,7 @@ module keyVaultModule 'keyvault.bicep' = {
     applicationUserObjectIds: [ functionModule.outputs.principalId, webSiteModule.outputs.principalId ]
     location: location
     commonTags: commonTags
+    workspaceId: logAnalyticsWorkspaceModule.outputs.id
   }
 }
 
