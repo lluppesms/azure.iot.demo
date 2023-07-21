@@ -68,6 +68,7 @@ jobs:
         tree $(Pipeline.Workspace)
         dir $(Pipeline.Workspace) /s
     displayName: 'Display Variables and Tree'
+    continueOnError: true
 
   - task: AzureRmWebAppDeployment@4
     displayName: 'Publish App to Azure'

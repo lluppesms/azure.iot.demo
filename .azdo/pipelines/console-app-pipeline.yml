@@ -2,7 +2,7 @@
 # Pipeline to build IoT Simulator; compiles for both Windows (x64) and Linux; copies EXE to storage for downloading ease
 # ------------------------------------------------------------------------------------------------------------------------
 # Note: This pipeline needs a variable group "IoTDemo"
-#  See ../Docs/Create-Variable-Group.md for details
+#  See ./Docs/Create-Variable-Group.md for details
 # ------------------------------------------------------------------------------------------------------------------------
 trigger:
   branches:

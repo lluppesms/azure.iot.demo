@@ -47,6 +47,15 @@ module resourceNames 'resourcenames.bicep' = {
 }
 
 // --------------------------------------------------------------------------------
+module logAnalyticsWorkspaceModule 'loganalyticsworkspace.bicep' = {
+  name: 'logAnalytics${deploymentSuffix}'
+  params: {
+    logAnalyticsWorkspaceName: resourceNames.outputs.logAnalyticsWorkspaceName
+    location: location
+    commonTags: commonTags
+  }
+}
+
 module storageModule 'storageaccount.bicep' = {
   name: 'storage${deploymentSuffix}'
   params: {
@@ -142,6 +151,7 @@ module functionModule 'functionapp.bicep' = {
     location: location
     appInsightsLocation: location
     commonTags: commonTags
+    workspaceId: logAnalyticsWorkspaceModule.outputs.id
   }
 }
 
@@ -156,6 +166,7 @@ module webSiteModule 'website.bicep' = {
     location: location
     appInsightsLocation: location
     commonTags: commonTags
+    workspaceId: logAnalyticsWorkspaceModule.outputs.id
   }
 }
 
@@ -168,6 +179,7 @@ module keyVaultModule 'keyvault.bicep' = {
     applicationUserObjectIds: [ functionModule.outputs.principalId, webSiteModule.outputs.principalId ]
     location: location
     commonTags: commonTags
+    workspaceId: logAnalyticsWorkspaceModule.outputs.id
   }
 }
 

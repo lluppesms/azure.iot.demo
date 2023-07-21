@@ -1,12 +1,12 @@
 # ------------------------------------------------------------------------------------------------------------------------
-# Pipeline to deploy IoT Function App Processor for the IoT Demo Project
+# Pipeline to deploy Azure Resources Only
 # ------------------------------------------------------------------------------------------------------------------------
 # Note: This pipeline needs a variable group "IoTDemo"
-#  See ../Docs/Create-Variable-Group.md for details
+#  See ./Docs/Create-Variable-Group.md for details
 # ------------------------------------------------------------------------------------------------------------------------
 name: $(date:yyyy).$(date:MM).$(date:dd)$(rev:.r)
 pool:
-  vmImage: windows-latest
+  vmImage: ubuntu-latest
 
 # ------------------------------------------------------------------------------------------------------------------------
 trigger:
@@ -14,16 +14,27 @@ trigger:
     include: 
       - main
   paths:
-    include:
-      - FunctionApp
-    exclude: 
+    include: 
       - '**/*.yml'
       - '**/*.yaml'
       - '**/*.bicep'
 
 # ----------------------------------------------------------------------------------------------------
+parameters:
+  - name: runDevSecOpsScan
+    displayName: Run MS DevSecOps Scan
+    type: boolean
+    default: false
+  - name: runPsRuleScan
+    displayName: Run PSRule Bicep Scan
+    type: boolean
+    default: false
+
+# ----------------------------------------------------------------------------------------------------
 stages:
-- template: pipes/function-only-pipeline-template.yml
+- template: pipes/infra-only-pipeline-template.yml
   parameters:
     variableGroupName: 'IoTDemo'
     environments: ['DEMO']  # ['DEV','PROD'] ['DEV','QA'] or ['DEV','QA','PROD']
+    runDevSecOpsScan: ${{ parameters.runDevSecOpsScan }}
+    runPsRuleScan: ${{ parameters.runPsRuleScan }}
