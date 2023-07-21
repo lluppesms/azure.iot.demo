@@ -120,7 +120,7 @@ public static class MyLogger
             if (!string.IsNullOrEmpty(AppInsightsInstrumentationKey))
             {
                 var cfg = TelemetryConfiguration.CreateDefault();
-                cfg.InstrumentationKey = AppInsightsInstrumentationKey;
+                cfg.ConnectionString = $"InstrumentationKey={AppInsightsInstrumentationKey}";
                 appInsightsClient = new TelemetryClient(cfg);
                 return true;
             }
