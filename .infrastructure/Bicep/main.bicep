@@ -40,7 +40,7 @@ module resourceNames 'resourcenames.bicep' = {
     environment: environmentCode
     appSuffix: appSuffix
     webAppName: 'dashboard'
-    functionName: 'func'
+    functionName: 'process'
     functionStorageNameSuffix: 'store'
     iotStorageNameSuffix: 'hub'
   }
