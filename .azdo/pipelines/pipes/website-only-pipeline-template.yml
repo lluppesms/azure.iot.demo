@@ -13,12 +13,23 @@ parameters:
   default: ''
 - name: webAppName
   default: ''
+- name: runDevSecOpsScan
+  default: 'true'
+- name: runPsRuleScan
+  default: 'true'
 
 # ----------------------------------------------------------------------------------------------------
 stages:
 - stage: BuildWebApp
   displayName: Build Web App
   jobs:
+  - ${{ if or(eq(lower(parameters.runDevSecOpsScan), 'true'), eq(lower(parameters.runPsRuleScan), 'true')) }}:
+    - template: templates/scan-code-template.yml
+      parameters:
+        environmentName: 'DEV'
+        runDevSecOpsScan: ${{ parameters.runDevSecOpsScan }}
+        runPsRuleScan: ${{ parameters.runPsRuleScan }}
+
   - template: templates/build-website-template.yml
     parameters:
       variableGroupName: ${{ parameters.variableGroupName }}
