@@ -4,6 +4,9 @@
 # ------------------------------------------------------------------------------------------------------------------------
 name: $(date:yyyy).$(date:MM).$(date:dd)$(rev:.r)
 
+pool:
+  vmImage: 'windows-latest'
+
 trigger:
   batch: true
   branches:
