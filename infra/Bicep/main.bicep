@@ -151,6 +151,7 @@ module functionModule 'functionapp.bicep' = {
     location: location
     appInsightsLocation: location
     commonTags: commonTags
+    workspaceId: logAnalyticsWorkspaceModule.outputs.id
   }
 }
 
@@ -165,6 +166,7 @@ module webSiteModule 'website.bicep' = {
     location: location
     appInsightsLocation: location
     commonTags: commonTags
+    workspaceId: logAnalyticsWorkspaceModule.outputs.id
   }
 }
 
