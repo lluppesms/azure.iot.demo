@@ -42,7 +42,7 @@ See also:
 
 3.2. Add the certificate that was obtained to the DPS certificate store
 
-3.3. Create a DPS enrollment group based on the certificate. 
+3.3. Create a DPS enrollment group based on the certificate.
 
     Note: these steps are still not available in ARM templates... maybe could do it in Powershell...? The certificate can be deployed in Bicep with auto-verification, but when the Bicep is run a second time it fails.
 
