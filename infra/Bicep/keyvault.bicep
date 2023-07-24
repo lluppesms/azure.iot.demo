@@ -42,6 +42,10 @@ param createUserAssignedIdentity bool = true
 param userAssignedIdentityName string = '${keyVaultName}-cicd'
 
 @description('The workspace to store audit logs.')
+@metadata({
+  strongType: 'Microsoft.OperationalInsights/workspaces'
+  example: '/subscriptions/<subscription_id>/resourceGroups/<resource_group>/providers/Microsoft.OperationalInsights/workspaces/<workspace_name>'
+})
 param workspaceId string = ''
 
 // --------------------------------------------------------------------------------
