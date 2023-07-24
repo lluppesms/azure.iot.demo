@@ -74,6 +74,7 @@ module iotHubModule 'iothub.bicep' = {
     iotStorageContainerName: 'iothubuploads'
     location: location
     commonTags: commonTags
+    workspaceId: logAnalyticsWorkspaceModule.outputs.id
   }
 }
 module dpsModule 'dps.bicep' = {
@@ -84,6 +85,7 @@ module dpsModule 'dps.bicep' = {
     iotHubName: iotHubModule.outputs.name
     location: location
     commonTags: commonTags
+    workspaceId: logAnalyticsWorkspaceModule.outputs.id
   }
 }
 
@@ -93,6 +95,7 @@ module signalRModule 'signalr.bicep' = {
     signalRName: resourceNames.outputs.signalRName
     location: location
     commonTags: commonTags
+    workspaceId: logAnalyticsWorkspaceModule.outputs.id
   }
 }
 
@@ -103,6 +106,7 @@ module servicebusModule 'servicebus.bicep' = {
     queueNames: [ 'iotmsgs', 'filemsgs' ]
     location: location
     commonTags: commonTags
+    workspaceId: logAnalyticsWorkspaceModule.outputs.id
   }
 }
 
@@ -116,6 +120,7 @@ module streamingModule 'streaming.bicep' = {
 
     location: location
     commonTags: commonTags
+    workspaceId: logAnalyticsWorkspaceModule.outputs.id
   }
 }
 
