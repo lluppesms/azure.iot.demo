@@ -5,6 +5,16 @@ This project has Bicep deploys for all sorts of objects that coordinate with eac
 
 ![Architecture](./Docs/IoTExampleArchitecture.png)
 
+## Work In Process
+
+### Add Device Connection Monitoring Demo
+
+- (done) Create Service bus queue - connectionEvents
+- (done) Change IotHub to have managed identity
+- (failing) Add Event Grid subscription for connect/disconnect connectionEvents
+- (not started) Update function app to read events and post to CreateDevOpsEnvironments
+- (not started) Update web app to display these connect/disconnect events
+
 ## Getting Started
 
 ### 1. Before Deploy
@@ -33,6 +43,10 @@ See also:
 See also:
 
 - [Create Azure DevOps Pipeline(s)](./Docs/CreateNewPipeline.md)
+
+2.2 Event Grid:  If you have not enabled or used Event Grid in your subscription before, you may get an error message: "*The subscription is not registered to use namespace 'Microsoft.EventGrid'*".  In that case, you will have to enable Event Grid via a CLI command and try the deploy pipeline again:
+
+    az provider register --namespace Microsoft.EventGrid
 
 ---
 

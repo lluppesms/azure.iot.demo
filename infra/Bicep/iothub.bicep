@@ -14,6 +14,7 @@ param commonTags object = {}
 param sku string = 'S1'
 @allowed(['Allow','Deny'])
 param allowStorageNetworkAccess string = 'Allow'
+//param serviceBusName string = ''
 
 @description('The workspace to store audit logs.')
 param workspaceId string = ''
@@ -21,6 +22,18 @@ param workspaceId string = ''
 // --------------------------------------------------------------------------------
 var templateTag = { TemplateFile: '~iothub.bicep' }
 var tags = union(commonTags, templateTag)
+
+// --------------------------------------------------------------------------------
+// var serviceBusAccessKeyName = 'RootManageSharedAccessKey'
+// var queueName = 'connectionevents'
+// resource serviceBusResource 'Microsoft.ServiceBus/namespaces@2021-11-01' existing = { name: serviceBusName }
+//var serviceBusEndpoint = '${serviceBusResource.id}/AuthorizationRules/${serviceBusAccessKeyName}' 
+//var serviceBusKey = '${listKeys(serviceBusEndpoint, serviceBusResource.apiVersion).primaryKey}'
+//var serviceBusConnectionString = 'Endpoint=sb://${serviceBusResource.name}.servicebus.windows.net/;SharedAccessKeyName=${serviceBusAccessKeyName};SharedAccessKey=${serviceBusKey};EntityPath=${queueName}' 
+// resource serviceBusQueueResource 'Microsoft.ServiceBus/namespaces/queues@2022-01-01-preview' existing = {
+//   parent: serviceBusResource
+//   name: queueName
+// }
 
 // --------------------------------------------------------------------------------
 // create a storage account for the Iot Hub to use
@@ -60,7 +73,6 @@ resource iotStorageAccountResource 'Microsoft.Storage/storageAccounts@2021-04-01
       minimumTlsVersion: 'TLS1_2'
   }
 }
-
 var iotStorageKey = iotStorageAccountResource.listKeys().keys[0].value
 var iotStorageAccountConnectionString = 'DefaultEndpointsProtocol=https;AccountName=${iotStorageAccountResource.name};EndpointSuffix=${environment().suffixes.storage};AccountKey=${iotStorageKey}'
 
@@ -100,46 +112,32 @@ resource iotHubResource 'Microsoft.Devices/IotHubs@2022-04-30-preview' = {
     capacity: 1
   }
   identity: {
-    type: 'None'
+    type: 'SystemAssigned' // type: 'None'
   }
   properties: {
+    // // this snipped creates a Message Routing Custom endpoint
     // routing: {
     //   endpoints: {
     //     serviceBusQueues: [
     //       {
-    //         connectionString: svcBusConnectionString
+    //         connectionString: serviceBusConnectionString
     //         authenticationType: 'keyBased'
-    //         name: 'datatosvcbusroute'
-    //         // id: 'faadc3d2-62e3-40a6-b3b0-13d4c9994018'
-    //         // subscriptionId: subscription().id  
-    //         // resourceGroup: resourceGroup().name
+    //         name: 'connectionEventsQueue'
     //       }
     //     ]
-    //     serviceBusTopics: []
-    //     eventHubs: []
-    //     storageContainers: []
     //   }
     //   routes: [
     //     {
-    //       name: 'RouteToEventGrid'
-    //       source: 'DeviceMessages'
+    //       name: 'RouteConnectionsToEventGrid'
+    //       // Valid sources are: devicemessages, deviceconnectionstateevents, twinchangeevents, digitaltwinchangeevents, devicejoblifecycleevents, devicelifecycleevents, or invalid 
+    //       source: 'DeviceConnectionStateEvents'
     //       condition: 'true'
-    //       endpointNames: [
-    //         'eventgrid'
-    //       ]
+    //       endpointNames: [ 'connectionEventsQueue' ]
     //       isEnabled: true
     //     }
     //   ]
-    //   fallbackRoute: {
-    //     name: '$fallback'
-    //     source: 'DeviceMessages'
-    //     condition: 'true'
-    //     endpointNames: [
-    //       'events'
-    //     ]
-    //     isEnabled: true
-    //   }
     // }
+    // // end - Message Routing Custom endpoint
     storageEndpoints: {
       '$default': {
         sasTtlAsIso8601: 'PT1H'
@@ -178,6 +176,72 @@ resource iotHubResource 'Microsoft.Devices/IotHubs@2022-04-30-preview' = {
     enableDataResidency: false
   }
 }
+
+// // this isn't quite right yet...  can't seem to figure out the magic to automate this...
+// // I get errors like "BadRequest" or "Invalid ARM id" or other non-helpful messages
+// //https://learn.microsoft.com/en-us/azure/templates/microsoft.eventgrid/eventsubscriptions?pivots=deployment-language-bicep
+// // When you create it manually and look at the ARM in the Advanced Editor in the portal looks like this..., 
+// // but I can't get the Bicep to replicate this and make it work...! :(
+// // {
+// // 	"name": "testSubscription",
+// // 	"properties": {
+// // 		"topic": "/subscriptions/xxxx/resourceGroups/rg_iot_demo/providers/Microsoft.Devices/IotHubs/lll-iot-hub-demo",
+// // 		"destination": {
+// // 			"endpointType": "ServiceBusQueue",
+// // 			"properties": {
+// // 				"resourceId": "/subscriptions/xxxx/resourceGroups/rg_iot_demo/providers/Microsoft.ServiceBus/namespaces/lll-iot-svcbus-demo/queues/connectionevents"
+// // 			}
+// // 		},
+// // 		"filter": {
+// // 			"includedEventTypes": [
+// // 				"Microsoft.Devices.DeviceConnected",
+// // 				"Microsoft.Devices.DeviceDisconnected"
+// // 			],
+// // 			"advancedFilters": [],
+// // 			"enableAdvancedFilteringOnArrays": true
+// // 		},
+// // 		"labels": [],
+// // 		"eventDeliverySchema": "EventGridSchema"
+// // 	}
+// // }
+// resource connectionEventSubscription 'Microsoft.EventGrid/eventSubscriptions@2022-06-15' = {
+//   name: 'connectionEventGridSubscription'
+//   scope: iotHubResource
+//   properties: {
+//     deliveryWithResourceIdentity: {
+//       // identity: {
+//       //   type: 'SystemAssigned'
+//       // } 
+//       destination: {
+//         endpointType: 'ServiceBusQueue'
+//         properties: {
+//           resourceId: serviceBusResource.id
+//           //resourceId: serviceBusQueueResource.id
+//           // deliveryAttributeMappings: [
+//           //   {
+//           //     name: 'queueName'
+//           //     type: 'Dynamic'
+//           //     properties: {
+//           //       sourceField: queueName
+//           //     }
+//           //   }
+//           // ]
+//           // }
+//           //queueName: queueName
+//         }
+//       }
+//     }
+//     filter: {
+//       includedEventTypes: [ 'Microsoft.Devices.DeviceDeleted','Microsoft.Devices.DeviceConnected' ]
+//       enableAdvancedFilteringOnArrays: true
+//     } 
+//     eventDeliverySchema: 'EventGridSchema'
+//     retryPolicy: {
+//       eventTimeToLiveInMinutes: 10
+//       maxDeliveryAttempts: 5
+//     }
+//   }
+// }
 
 // --------------------------------------------------------------------------------
 resource iotHubAuditLogging 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
@@ -230,3 +294,5 @@ output id string = iotHubResource.id
 output apiVersion string = iotHubResource.apiVersion
 output storageAccountName string = iotStorageAccountName
 output storageContainerName string = iotStorageContainerName
+// output serviceBusName string = serviceBusName
+// output serviceBusAccessKeyName string = serviceBusAccessKeyName

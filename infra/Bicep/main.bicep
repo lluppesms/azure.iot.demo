@@ -75,6 +75,7 @@ module iotHubModule 'iothub.bicep' = {
     location: location
     commonTags: commonTags
     workspaceId: logAnalyticsWorkspaceModule.outputs.id
+    // serviceBusName: servicebusModule.outputs.name
   }
 }
 module dpsModule 'dps.bicep' = {
@@ -103,7 +104,7 @@ module servicebusModule 'servicebus.bicep' = {
   name: 'servicebus${deploymentSuffix}'
   params: {
     serviceBusName: resourceNames.outputs.serviceBusName
-    queueNames: [ 'iotmsgs', 'filemsgs' ]
+    queueNames: [ 'iotmsgs', 'filemsgs', 'connectionEvents' ]
     location: location
     commonTags: commonTags
     workspaceId: logAnalyticsWorkspaceModule.outputs.id
