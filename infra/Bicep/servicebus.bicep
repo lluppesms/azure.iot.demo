@@ -3,9 +3,9 @@
 // --------------------------------------------------------------------------------
 param serviceBusName string = 'myservicebusname'
 param location string = resourceGroup().location
-param commonTags object = {}
-
+param topicNames array = [ 'topic1Name' ]
 param queueNames array = ['queue1Name', 'queue2Name']
+param commonTags object = {}
 
 @description('The workspace to store audit logs.')
 param workspaceId string = ''
@@ -19,6 +19,9 @@ resource serviceBusResource 'Microsoft.ServiceBus/namespaces@2022-01-01-preview'
   name: serviceBusName
   location: location
   tags: tags
+  identity: {
+    type: 'SystemAssigned'
+  }
   sku: {
     name: 'Basic'
     tier: 'Basic'
@@ -42,6 +45,11 @@ resource serviceBusAccessKeyResource 'Microsoft.ServiceBus/namespaces/Authorizat
     ]
   }
 }
+
+resource serviceBusTopic 'Microsoft.ServiceBus/namespaces/topics@2017-04-01' = [for topicName in topicNames: {
+  name: topicName
+  parent: serviceBusResource
+}]
 
 resource serviceBusQueueResource 'Microsoft.ServiceBus/namespaces/queues@2022-01-01-preview' = [for queueName in queueNames: {
   parent: serviceBusResource
@@ -113,4 +121,5 @@ var serviceBusEndpoint = '${serviceBusResource.id}/AuthorizationRules/RootManage
 output name string = serviceBusResource.name
 output id string = serviceBusResource.id
 output apiVersion string = serviceBusResource.apiVersion
-output endpoint string = serviceBusEndpoint
+output serviceBusEndpoint string = serviceBusEndpoint
+output endpoint string = serviceBusResource.properties.serviceBusEndpoint

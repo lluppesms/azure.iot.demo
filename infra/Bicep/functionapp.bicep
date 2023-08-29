@@ -21,7 +21,9 @@ param workspaceId string = ''
 
 // --------------------------------------------------------------------------------
 var templateTag = { TemplateFile: '~functionapp.bicep' }
+var azdTag = { 'azd-service-name': 'function' }
 var tags = union(commonTags, templateTag)
+var functionTags = union(commonTags, templateTag, azdTag)
 
 // --------------------------------------------------------------------------------
 resource storageAccountResource 'Microsoft.Storage/storageAccounts@2019-06-01' existing = { name: functionStorageAccountName }
@@ -71,7 +73,7 @@ resource functionAppResource 'Microsoft.Web/sites@2021-03-01' = {
   name: functionAppName
   location: location
   kind: functionKind
-  tags: tags
+  tags: functionTags
   identity: {
     type: 'SystemAssigned'
   }
@@ -83,6 +85,10 @@ resource functionAppResource 'Microsoft.Web/sites@2021-03-01' = {
     hyperV: false
     siteConfig: {
       appSettings: [
+        {
+          name: 'AzureWebJobsDashboard'
+          value: functionStorageAccountConnectionString
+        }
         {
           name: 'AzureWebJobsStorage'
           value: functionStorageAccountConnectionString
@@ -111,26 +117,122 @@ resource functionAppResource 'Microsoft.Web/sites@2021-03-01' = {
           name: 'FUNCTIONS_EXTENSION_VERSION'
           value: '~4'
         }
+        {
+          name: 'WEBSITE_NODE_DEFAULT_VERSION'
+          value: '8.11.1'
+        }
       ]
       ftpsState: 'FtpsOnly'
       minTlsVersion: '1.2'
     }
-        scmSiteAlsoStopped: false
-        clientAffinityEnabled: false
-        clientCertEnabled: false
-        hostNamesDisabled: false
-        dailyMemoryTimeQuota: 0
-        httpsOnly: true
-        redundancyMode: 'None'
+    scmSiteAlsoStopped: false
+    clientAffinityEnabled: false
+    clientCertEnabled: false
+    hostNamesDisabled: false
+    dailyMemoryTimeQuota: 0
+    httpsOnly: true
+    redundancyMode: 'None'
   }
 }
 
-// can't seem to get this to work right... tried multiple ways...  keep getting this error:
-//    No route registered for '/api/siteextensions/Microsoft.ApplicationInsights.AzureWebSites'.
-// resource functionAppInsightsExtension 'Microsoft.Web/sites/siteextensions@2020-06-01' = {
-//   parent: functionAppResource
-//   name: 'Microsoft.ApplicationInsights.AzureWebSites'
-//   dependsOn: [ appInsightsResource ]
+resource functionAppConfig 'Microsoft.Web/sites/config@2018-11-01' = {
+  parent: functionAppResource
+  name: 'web'
+  properties: {
+    cors: {
+      allowedOrigins: [
+        'https://portal.azure.com'
+      ]
+      supportCredentials: false
+    }
+  }
+}
+
+// resource functionAppConfig 'Microsoft.Web/sites/config@2018-11-01' = {
+//     parent: functionAppResource
+//     name: 'web'
+//     properties: {
+//         numberOfWorkers: -1
+//         defaultDocuments: [
+//             'Default.htm'
+//             'Default.html'
+//             'Default.asp'
+//             'index.htm'
+//             'index.html'
+//             'iisstart.htm'
+//             'default.aspx'
+//             'index.php'
+//             'hostingstart.html'
+//         ]
+//         netFrameworkVersion: 'v4.0'
+//         linuxFxVersion: 'dotnet|6.0'
+//         requestTracingEnabled: false
+//         remoteDebuggingEnabled: false
+//         httpLoggingEnabled: false
+//         logsDirectorySizeLimit: 35
+//         detailedErrorLoggingEnabled: false
+//         publishingUsername: '$${functionAppName}'
+//         azureStorageAccounts: {            
+//         }
+//         scmType: 'None'
+//         use32BitWorkerProcess: false
+//         webSocketsEnabled: false
+//         alwaysOn: false
+//         managedPipelineMode: 'Integrated'
+//         virtualApplications: [
+//             {
+//                 virtualPath: '/'
+//                 physicalPath: 'site\\wwwroot'
+//                 preloadEnabled: true
+//             }
+//         ]
+//         loadBalancing: 'LeastRequests'
+//         experiments: {
+//             rampUpRules: [                
+//             ]
+//         }
+//         autoHealEnabled: false
+//         cors: {
+//             allowedOrigins: [
+//                 'https://functions.azure.com'
+//                 'https://functions-staging.azure.com'
+//                 'https://functions-next.azure.com'
+//             ]
+//             supportCredentials: false
+//         }
+//         localMySqlEnabled: false
+//         ipSecurityRestrictions: [
+//             {
+//                 ipAddress: 'Any'
+//                 action: 'Allow'
+//                 priority: 1
+//                 name: 'Allow all'
+//                 description: 'Wide open to the world :)'
+//             }
+//         ]
+//         scmIpSecurityRestrictions: [
+//             {
+//                 ipAddress: 'Any'
+//                 action: 'Allow'
+//                 priority: 1
+//                 name: 'Allow all'
+//                 description: 'Wide open to the world :)'
+//             }            
+//         ]
+//         scmIpSecurityRestrictionsUseMain: false
+//         http20Enabled: true
+//         minTlsVersion: '1.2'
+//         ftpsState: 'AllAllowed'
+//         reservedInstanceCount: 0
+//     }
+// }
+
+// resource functionAppBinding 'Microsoft.Web/sites/hostNameBindings@2018-11-01' = {
+//     name: '${functionAppResource.name}/${functionAppResource.name}.azurewebsites.net'
+//     properties: {
+//         siteName: functionAppName
+//         hostNameType: 'Verified'
+//     }
 // }
 
 resource functionAppMetricLogging 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
@@ -142,10 +244,11 @@ resource functionAppMetricLogging 'Microsoft.Insights/diagnosticSettings@2021-05
       {
         category: 'AllMetrics'
         enabled: true
-        retentionPolicy: {
-          days: 30
-          enabled: true 
-        }
+        // Note: Causes error: Diagnostic settings does not support retention for new diagnostic settings.
+        // retentionPolicy: {
+        //   days: 30
+        //   enabled: true 
+        // }
       }
     ]
   }
@@ -161,10 +264,11 @@ resource functionAppAuditLogging 'Microsoft.Insights/diagnosticSettings@2021-05-
       {
         category: 'FunctionAppLogs'
         enabled: true
-        retentionPolicy: {
-          days: 30
-          enabled: true 
-        }
+        // Note: Causes error: Diagnostic settings does not support retention for new diagnostic settings.
+        // retentionPolicy: {
+        //   days: 30
+        //   enabled: true 
+        // }
       }
     ]
   }
@@ -178,15 +282,17 @@ resource appServiceMetricLogging 'Microsoft.Insights/diagnosticSettings@2021-05-
       {
         category: 'AllMetrics'
         enabled: true
-        retentionPolicy: {
-          days: 30
-          enabled: true 
-        }
+        // Note: Causes error: Diagnostic settings does not support retention for new diagnostic settings.
+        // retentionPolicy: {
+        //   days: 30
+        //   enabled: true 
+        // }
       }
     ]
   }
 }
 
+// --------------------------------------------------------------------------------
 output principalId string = functionAppResource.identity.principalId
 output id string = functionAppResource.id
 output name string = functionAppName

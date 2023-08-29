@@ -13,6 +13,7 @@ var accountKey = storageAccountResource.listKeys().keys[0].value
 var storageAccountConnectionString = 'DefaultEndpointsProtocol=https;AccountName=${storageAccountResource.name};EndpointSuffix=${environment().suffixes.storage};AccountKey=${accountKey}'
 
 var BASE_SLOT_APPSETTINGS = {
+  AzureWebJobsDashboard: storageAccountConnectionString
   AzureWebJobsStorage: storageAccountConnectionString
   WEBSITE_CONTENTAZUREFILECONNECTIONSTRING: storageAccountConnectionString
   WEBSITE_CONTENTSHARE: functionAppName
@@ -20,6 +21,7 @@ var BASE_SLOT_APPSETTINGS = {
   APPLICATIONINSIGHTS_CONNECTION_STRING: 'InstrumentationKey=${functionInsightsKey}'
   FUNCTIONS_WORKER_RUNTIME: 'dotnet'
   FUNCTIONS_EXTENSION_VERSION: '~4'
+  WEBSITE_NODE_DEFAULT_VERSION: '8.11.1'
 }
 
 // This *should* work, but I keep getting a "circular dependency detected" error and it doesn't work
