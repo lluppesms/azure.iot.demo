@@ -1,33 +1,55 @@
 # Code Signing in CI/CD Pipeline
+
 This documents the steps needed to do code signing in your pipeline.
 
 ## Creating a PFX File
+
 To create a self-signed cert, run this PowerShell command:
-```
+
+``` bash
   > $New-SelfSignedCertificate -DNSName "www.luppes.com" -CertStoreLocation Cert:\CurrentUser\My -Type CodeSigningCert -Subject "CN=Luppes Demo, O=Luppes Demo, C=US"
 ```
+
 Note the thumbprint in the output from this command and use that in the next set of commands.
 
 To export the certificate in the local store to a Personal Information Exchange (PFX) file, use the Export-PfxCertificate cmdlet. When using Export-PfxCertificate, you must either create and use a password or use the "-ProtectTo" parameter to specify which users or groups can access the file without a password.
 
-```
+``` bash
   > $password = ConvertTo-SecureString -String 1234 -Force -AsPlainText 
   > Export-PfxCertificate -cert "Cert:\CurrentUser\My\<myThumbprint>" -FilePath C:\Certs\LuppesDemoSigningCert.pfx -Password $password
 ```
 
 ## NOTE: Using the Certificate In Your App
-  To use a certificate to sign your app package, the "Subject" in the certificate must match the "Publisher" section in your app's manifest.
-  For example, the "Identity" section in your app's AppxManifest.xml file should look something like this:
+
+To use a certificate to sign your app package, the "Subject" in the certificate must match the "Publisher" section in your app's manifest.
+For example, the "Identity" section in your app's AppxManifest.xml file should look something like this:
+
+``` bash
   <Identity Name="Contoso.AssetTracker" Version="1.0.0.0" Publisher="CN=Contoso Software, O=Contoso Corporation, C=US"/>
+```
 
 ## Viewing A Certificate
+
 To view a cert in Certificate Manager, import the cert, then get the thumbprint
   > Set-Location Cert:\CurrentUser\My
   > Get-ChildItem | Format-Table Subject, FriendlyName, Thumbprint
 
+## Creating a Self Signed Certificate
+
+For testing purposes, it is possible to create a self-signed certificate using these commands: (Note: Azure KV does not support 1024 keys - use 2048)
+
+``` bash
+openssl genrsa -out YourCertName.key 2048
+openssl req -new -key YourCertName.key -out YourCertName.csr -subj "/C=US/ST=MN/O=Demo Org Name/CN=Demo Org Name Signing Cert"
+openssl x509 -req -days 900 -in YourCertName.csr -CA YourCertName.pem -CAkey YourCertName.key -set_serial 01 -out YourCertName.cer
+openssl pkcs12 -inkey YourCertName.key -in YourCertName.cer -export -out YourCertName.pfx
+```
+
 ## Build Process - Variable Group Contents
+
 The build job uses a command to sign your executable with variables, and the best way to control these variables is to put them into a Variable Group which can be secured and read only by the pipeline. Create a variable group named "CodeSigning", and populate these variables:
 
+``` bash
 - KeyVaultUrl: https://<yourVaultName>.vault.azure.net/
 - CertName: <yourCertName>
 - SigningAppRegAppId: <AppReg ClientId guid>
@@ -36,12 +58,15 @@ The build job uses a command to sign your executable with variables, and the bes
 - TimestampUrl: http://timestamp.digicert.com
 - SubscriptionName: <your subscription / Service Connection>
 - StorageAccountName: <name of storage account to store output>
+```
 
 ## Build Process - The Actual Build Steps
+
 In your pipeline, add a VariableGroup "CodeSigning" to make this work (go to edit -> Triggers to get to a detailed editor, then add via Variables tab to add the group...)
 
 These are the steps to pull in the sign tool and sign the code:
-```
+
+``` bash
     variables:
     - name: exeName
         value: IoT.Simulator
@@ -67,9 +92,9 @@ These are the steps to pull in the sign tool and sign the code:
 ```
 
 ## Reference Documents
-https://docs.microsoft.com/en-us/windows/msix/package/create-certificate-package-signing
 
-https://codesigningstore.com/how-to-generate-self-signed-code-signing-certificate
+[https://docs.microsoft.com/en-us/windows/msix/package/create-certificate-package-signing](https://docs.microsoft.com/en-us/windows/msix/package/create-certificate-package-signing)
 
-https://docs.microsoft.com/en-us/windows/msix/desktop/cicd-keyvault
- 
+[https://codesigningstore.com/how-to-generate-self-signed-code-signing-certificate](https://codesigningstore.com/how-to-generate-self-signed-code-signing-certificate)
+
+[https://docs.microsoft.com/en-us/windows/msix/desktop/cicd-keyvault](https://docs.microsoft.com/en-us/windows/msix/desktop/cicd-keyvault)
