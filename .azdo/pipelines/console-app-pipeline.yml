@@ -4,6 +4,11 @@
 # Note: This pipeline needs a variable group "IoTDemo"
 #  See ./Docs/Create-Variable-Group.md for details
 # ------------------------------------------------------------------------------------------------------------------------
+name: $(date:yyyy).$(date:MM).$(date:dd)$(rev:.r)
+pool:
+  vmImage: 'windows-latest'
+
+# ------------------------------------------------------------------------------------------------------------------------
 trigger:
   branches:
     include: 
@@ -16,10 +21,12 @@ trigger:
       - '**/*.yaml'
       - '**/*.bicep'
 
-pool:
-  vmImage: 'windows-latest'
-
-name: $(date:yyyy).$(date:MM).$(date:dd)$(rev:.r)
+# ----------------------------------------------------------------------------------------------------
+parameters:
+  - name: deployToStorage
+    displayName: Copy To Storage Account
+    type: boolean
+    default: false
 
 # ----------------------------------------------------------------------------------------------------
 stages:
@@ -27,3 +34,5 @@ stages:
   parameters:
     variableGroupName: 'IoTDemo'
     environments: ['DEMO']  # ['DEV','PROD'] ['DEV','QA'] or ['DEV','QA','PROD']
+    deployToStorage: ${{ parameters.deployToStorage }}
+
