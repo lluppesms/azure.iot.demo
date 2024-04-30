@@ -49,7 +49,7 @@ public class BlobStorageHelper
         settings = diSetting;
     }
     #endregion
-    
+
     /// <summary>
     /// List blobs for one device
     /// </summary>
@@ -70,8 +70,8 @@ public class BlobStorageHelper
                 blobServiceClient = new BlobServiceClient(settings.StorageConnectionString);
                 blobContainerClient = blobServiceClient.GetBlobContainerClient(Constants.BlobStorage.FileUploads);
             }
-            if (blobServiceClient == null) 
-            { 
+            if (blobServiceClient == null)
+            {
                 var badDataMessage = $"Unable to create Storage Client!";
                 MyLogger.LogError(badDataMessage, Constants.Source.StorageHelper);
                 return (new List<DeviceFile>(), badDataMessage);
@@ -187,9 +187,9 @@ public class BlobStorageHelper
                 blobClient = storageAccount.CreateCloudBlobClient();
                 container = blobClient.GetContainerReference(Constants.BlobStorage.FileUploads);
             }
-            //////await container.CreateIfNotExistsAsync();  --> this throws a 409 error in App Insights... it's not really needed. 
+            //////await container.CreateIfNotExistsAsync();  --> this throws a 409 error in App Insights... it's not really needed.
             if (!await container.ExistsAsync()) { return (false, null); }
-            
+
             var blob = container.GetBlockBlobReference(fileName);
             var blobExists = await blob.ExistsAsync();
             if (!blobExists)
